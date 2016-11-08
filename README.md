@@ -1,2 +1,2 @@
-# backbone_es6
-An ES6 build of Backbone, allowing for tree shaking
+# backbone-backgrid-js
+Backbone and backgrid with plugins. Built as es6 modules
