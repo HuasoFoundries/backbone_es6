@@ -1,4 +1,4 @@
-==Backbone + Backgrid 
+#Backbone + Backgrid 
 
 [![Travis CI](https://travis-ci.org/InstaGIS/backbone-backgrid-js.svg?branch=master)](https://travis-ci.org/InstaGIS/backbone-backgrid-js)
 
