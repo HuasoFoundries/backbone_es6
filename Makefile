@@ -13,7 +13,7 @@ version:
 
 install: 
 	npm install
-	jspm install --quick
+	jspm install
 
 
 test:

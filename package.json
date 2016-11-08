@@ -3,15 +3,18 @@
   "version": "16.0.0",
   "description": "Librerías Backbone y Backgrid como módulos ES6, con sus plugins",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
-  "contributors": [{
-    "name": "José Salazar",
-    "email": "jolsalazar@gmail.com",
-    "role": "Senior Developer"
-  }, {
-    "name": "Gabriel Tamayo",
-    "email": "gabriel.tamayo@gmail.com",
-    "role": "Junion Developer"
-  }],
+  "contributors": [
+    {
+      "name": "José Salazar",
+      "email": "jolsalazar@gmail.com",
+      "role": "Senior Developer"
+    },
+    {
+      "name": "Gabriel Tamayo",
+      "email": "gabriel.tamayo@gmail.com",
+      "role": "Junion Developer"
+    }
+  ],
   "license": "propietary",
   "repository": {
     "type": "git",
@@ -46,12 +49,13 @@
   "devDependencies": {
     "babel-eslint": "^6.1.2",
     "eslint": "^3.1.1"
-
   },
   "jspm": {
     "registry": "jspm",
     "main": "ig_backbone.js",
-    "dependencies": {},
+    "dependencies": {
+      "plugin-babel": "npm:systemjs-plugin-babel@^0.0.17"
+    },
     "devDependencies": {
       "babel-plugin-transform-es2015-unicode-regex": "npm:babel-plugin-transform-es2015-unicode-regex@^6.11.0",
       "babel-plugin-transform-merge-sibling-variables": "npm:babel-plugin-transform-merge-sibling-variables@^6.8.0",

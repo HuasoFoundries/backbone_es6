@@ -1,8 +1,4 @@
 {
-  "npm:systemjs-plugin-babel@0.0.17": {
-    "deps": {},
-    "peerDeps": {}
-  },
   "npm:jspm-nodelibs-tls@0.2.0": {
     "deps": {},
     "peerDeps": {}
@@ -689,6 +685,10 @@
     }
   },
   "npm:minimalistic-assert@1.0.0": {
+    "deps": {},
+    "peerDeps": {}
+  },
+  "npm:systemjs-plugin-babel@0.0.17": {
     "deps": {},
     "peerDeps": {}
   }
