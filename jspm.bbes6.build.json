@@ -1,0 +1,30 @@
+{
+	"paths": {
+		"ig_backbone": "dist/ig_backbone.js",
+		"jquery": "test/vendor/jquery.js",
+		"underscore": "test/vendor/underscore.js"
+	},
+
+	"meta": {
+		"dist/**/*.js": {
+			"build": false
+		},
+		"dist/*.js": {
+			"build": false
+		},
+		"test/vendor/*": {
+			"build": false
+		}
+	},
+	"packages": {
+
+		"ig_backbone": {
+			"main": "ig_backbone.js",
+			"defaultExtension": false,
+			"map": {
+				"backbone": "./vendor/backbone.es6.js",
+				"backgrid": "./vendor/backgrid.es6.js"
+			}
+		}
+	}
+}

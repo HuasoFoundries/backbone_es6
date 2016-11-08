@@ -1,2 +1,4 @@
-# backbone-backgrid-js
-Backbone and backgrid with plugins. Built as es6 modules
+==Backbone + Backgrid 
+
+This repo contains an ES6 version of Backbone.js and Backgrid.js, with all the plugins that
+are in use for the current implementation of InstaGIS.

@@ -1,0 +1,123 @@
+{
+  "name": "ig_backbone",
+  "version": "16.0.0",
+  "description": "Librerías Backbone y Backgrid como módulos ES6, con sus plugins",
+  "author": "Felipe Figueroa  <amenadiel@gmail.com>",
+  "contributors": [
+    {
+      "name": "José Salazar",
+      "email": "jolsalazar@gmail.com",
+      "role": "Senior Developer"
+    },
+    {
+      "name": "Gabriel Tamayo",
+      "email": "gabriel.tamayo@gmail.com",
+      "role": "Junion Developer"
+    }
+  ],
+  "license": "propietary",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/InstaGIS/backbone-backgrid-js"
+  },
+  "bugs": {
+    "url": "https://github.com/InstaGIS/backbone-backgrid-js/issues"
+  },
+  "homepage": "https://www.instagis.com",
+  "engines": {
+    "node": "6.0.x"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "main": "dist/ig_backbone.bundle.js",
+  "private": true,
+  "dependencies": {
+    "grunt": "^1.0.1",
+    "grunt-karma": "^2.0.0",
+    "jasmine-core": "^2.4.0",
+    "jspm": "^0.17.0-beta.31",
+    "karma": "^1.1.1",
+    "karma-coverage": "^1.0.0",
+    "karma-jasmine": "^1.0.0",
+    "karma-phantomjs-launcher": "^1.0.1",
+    "karma-qunit": "^1.1.0",
+    "phantomjs-prebuilt": "^2.1.7",
+    "qunitjs": "^1.23.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^6.1.2",
+    "eslint": "^3.1.1",
+    "grunt-contrib-concat": "^1.0.1",
+    "lodash": "^4.14.1"
+  },
+  "jspm": {
+    "registry": "jspm",
+    "main": "ig_backbone.js",
+    "dependencies": {},
+    "devDependencies": {
+      "babel-plugin-transform-es2015-unicode-regex": "npm:babel-plugin-transform-es2015-unicode-regex@^6.11.0",
+      "babel-plugin-transform-merge-sibling-variables": "npm:babel-plugin-transform-merge-sibling-variables@^6.8.0",
+      "babel-plugin-transform-object-assign": "npm:babel-plugin-transform-object-assign@^6.8.0"
+    },
+    "format": "esm",
+    "files": [
+      "src",
+      "dist"
+    ],
+    "peerDependencies": {
+      "css": "github:systemjs/plugin-css@^0.1",
+      "json": "github:systemjs/plugin-json@^0.1",
+      "less": "npm:systemjs-less-plugin@^1.8",
+      "text": "github:systemjs/plugin-text@^0.0.7",
+      "net": "npm:jspm-nodelibs-net@^0.2.0",
+      "dgram": "npm:jspm-nodelibs-dgram@^0.2.0",
+      "dns": "npm:jspm-nodelibs-dns@^0.2.0",
+      "module": "npm:jspm-nodelibs-module@^0.2.0",
+      "tty": "npm:jspm-nodelibs-tty@^0.2.0",
+      "http": "npm:jspm-nodelibs-http@^0.2.0",
+      "https": "npm:jspm-nodelibs-https@^0.2.0",
+      "querystring": "npm:jspm-nodelibs-querystring@^0.2.0",
+      "tls": "npm:jspm-nodelibs-tls@^0.2.0",
+      "url": "npm:jspm-nodelibs-url@^0.2.0",
+      "zlib": "npm:jspm-nodelibs-zlib@^0.2.0",
+      "assert": "npm:jspm-nodelibs-assert@^0.2.0",
+      "buffer": "npm:jspm-nodelibs-buffer@^0.2.0",
+      "child_process": "npm:jspm-nodelibs-child_process@^0.2.0",
+      "constants": "npm:jspm-nodelibs-constants@^0.2.0",
+      "crypto": "npm:jspm-nodelibs-crypto@^0.2.0",
+      "events": "npm:jspm-nodelibs-events@^0.2.0",
+      "fs": "npm:jspm-nodelibs-fs@^0.2.0",
+      "os": "npm:jspm-nodelibs-os@^0.2.0",
+      "path": "npm:jspm-nodelibs-path@^0.2.0",
+      "process": "npm:jspm-nodelibs-process@^0.2.0",
+      "stream": "npm:jspm-nodelibs-stream@^0.2.0",
+      "string_decoder": "npm:jspm-nodelibs-string_decoder@^0.2.0",
+      "util": "npm:jspm-nodelibs-util@^0.2.0",
+      "vm": "npm:jspm-nodelibs-vm@^0.2.0"
+    },
+    "overrides": {
+      "npm:browserify-zlib@0.1.4": {
+        "dependencies": {
+          "readable-stream": "^2.0.2",
+          "pako": "~0.2.0"
+        },
+        "map": {
+          "_stream_transform": "readable-stream/transform"
+        }
+      },
+      "npm:inherits@2.0.3": {
+        "ignore": [
+          "test.js"
+        ]
+      },
+      "npm:lodash@4.16.6": {
+        "map": {
+          "buffer": "@empty",
+          "process": "@empty"
+        }
+      }
+    }
+  }
+}
