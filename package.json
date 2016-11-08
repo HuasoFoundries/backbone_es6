@@ -3,18 +3,15 @@
   "version": "16.0.0",
   "description": "Librerías Backbone y Backgrid como módulos ES6, con sus plugins",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
-  "contributors": [
-    {
-      "name": "José Salazar",
-      "email": "jolsalazar@gmail.com",
-      "role": "Senior Developer"
-    },
-    {
-      "name": "Gabriel Tamayo",
-      "email": "gabriel.tamayo@gmail.com",
-      "role": "Junion Developer"
-    }
-  ],
+  "contributors": [{
+    "name": "José Salazar",
+    "email": "jolsalazar@gmail.com",
+    "role": "Senior Developer"
+  }, {
+    "name": "Gabriel Tamayo",
+    "email": "gabriel.tamayo@gmail.com",
+    "role": "Junion Developer"
+  }],
   "license": "propietary",
   "repository": {
     "type": "git",
@@ -48,9 +45,8 @@
   },
   "devDependencies": {
     "babel-eslint": "^6.1.2",
-    "eslint": "^3.1.1",
-    "grunt-contrib-concat": "^1.0.1",
-    "lodash": "^4.14.1"
+    "eslint": "^3.1.1"
+
   },
   "jspm": {
     "registry": "jspm",
