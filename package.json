@@ -1,6 +1,6 @@
 {
   "name": "ig_backbone",
-  "version": "16.0.4",
+  "version": "16.0.5",
   "description": "Librerías Backbone y Backgrid como módulos ES6, con sus plugins",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "contributors": [{
@@ -29,6 +29,7 @@
     "dist"
   ],
   "main": "dist/ig_backbone.bundle.js",
+  "jsnext:main": "dist/ig_backbone.js",
   "private": true,
   "dependencies": {
     "grunt": "^1.0.1",
@@ -49,7 +50,8 @@
   },
   "jspm": {
     "registry": "jspm",
-    "main": "dist/ig_backbone.bundle.js",
+    "main": "dist/ig_backbone.js",
+    "format": "amd",
     "dependencies": {
       "plugin-babel": "npm:systemjs-plugin-babel@^0.0.17"
     },
@@ -58,7 +60,7 @@
       "babel-plugin-transform-merge-sibling-variables": "npm:babel-plugin-transform-merge-sibling-variables@^6.8.0",
       "babel-plugin-transform-object-assign": "npm:babel-plugin-transform-object-assign@^6.8.0"
     },
-    "format": "esm",
+
     "files": [
       "src",
       "dist"
