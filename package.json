@@ -1,6 +1,6 @@
 {
   "name": "ig_backbone",
-  "version": "16.0.3",
+  "version": "16.0.4",
   "description": "Librerías Backbone y Backgrid como módulos ES6, con sus plugins",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "contributors": [{

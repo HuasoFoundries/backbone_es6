@@ -12,7 +12,7 @@ export {
 	Backbone
 };
 export default {
-	$,
-	_,
+	$: $,
+	_: _,
 	Backbone: Backbone
 };
