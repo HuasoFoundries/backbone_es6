@@ -96,8 +96,4 @@ export {
 	_,
 	Backbone
 };
-export default {
-	$: $,
-	_: _,
-	Backbone: Backbone
-};
+export default Backbone;

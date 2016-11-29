@@ -23,6 +23,8 @@ module.exports = function (grunt) {
 					'test/vendor/object-assign-polyfill.js',
 					'test/vendor/prototype-bind-polyfill.js',
 					'test/vendor/bluebird.js',
+					'test/vendor/jquery.js',
+					'test/vendor/underscore.js',
 					'dist/ig_backbone.bundle.js',
 					'test/ig_backbone/setup/*.js',
 					'test/ig_backbone/*.js'
@@ -46,6 +48,7 @@ module.exports = function (grunt) {
 					'test/vendor/prototype-bind-polyfill.js',
 					'test/vendor/jquery.js',
 					'test/vendor/underscore.js',
+					'dist/ig_backbone.bundle.js',
 					'dist/ig_backgrid.bundle.js',
 					'test/ig_backgrid/setup/environment.js',
 					'test/ig_backgrid/*.js'

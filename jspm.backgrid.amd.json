@@ -13,6 +13,7 @@
 		"ig_backbone": "dist/ig_backbone.js",
 		"jquery": "test/vendor/jquery.js",
 		"backbone": "test/vendor/backbone.js",
+		"general_helper": "test/vendor/general_helper.js",
 		"underscore": "test/vendor/underscore.js"
 	},
 
@@ -31,13 +32,11 @@
 
 		"ig_backbone": {
 			"main": "ig_backbone.js",
-
+			"format": "amd",
 			"defaultExtension": false,
 
 			"map": {
-				"backbone": "./vendor/backbone.es6.js",
-				"jquery": "./vendor/jquery.es6.js",
-				"underscore": "./vendor/underscore.es6.js",
+
 				"backgrid": "./vendor/backgrid.es6.js"
 			}
 		}

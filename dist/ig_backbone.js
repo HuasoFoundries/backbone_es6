@@ -19,17 +19,17 @@ var previousBackbone = root.Backbone;
 var slice$1 = Array.prototype.slice;
 
 // Current version of the library. Keep in sync with `package.json`.
-var Backbone$1 = {
+var Backbone$2 = {
   VERSION: '1.3.3-es6'
 };
 
 // For Backbone's purposes, jQuery, Zepto, Ender, or My Library (kidding) owns
 // the `$` variable.
-Backbone$1.$ = $;
+Backbone$2.$ = $;
 
 // Runs Backbone.js in *noConflict* mode, returning the `Backbone` variable
 // to its previous owner. Returns a reference to this Backbone object.
-Backbone$1.noConflict = function () {
+Backbone$2.noConflict = function () {
   root.Backbone = previousBackbone;
   return this;
 };
@@ -106,13 +106,13 @@ var wrapError = function wrapError(model, options) {
 // Turn on `emulateHTTP` to support legacy HTTP servers. Setting this option
 // will fake `"PATCH"`, `"PUT"` and `"DELETE"` requests via the `_method` parameter and
 // set a `X-Http-Method-Override` header.
-Backbone$1.emulateHTTP = false;
+Backbone$2.emulateHTTP = false;
 
 // Turn on `emulateJSON` to support legacy servers that can't deal with direct
 // `application/json` requests ... this will encode the body as
 // `application/x-www-form-urlencoded` instead and will send the model in a
 // form param named `model`.
-Backbone$1.emulateJSON = false;
+Backbone$2.emulateJSON = false;
 
 // Map from CRUD to HTTP for our default `Backbone.sync` implementation.
 var methodMap = {
@@ -140,13 +140,13 @@ var methodMap = {
 // instead of `application/json` with the model in a param named `model`.
 // Useful when interfacing with server-side languages like **PHP** that make
 // it difficult to read the body of `PUT` requests.
-Backbone$1.sync = function (method, model, options) {
+Backbone$2.sync = function (method, model, options) {
   var type = methodMap[method];
 
   // Default options, unless specified.
   _.defaults(options || (options = {}), {
-    emulateHTTP: Backbone$1.emulateHTTP,
-    emulateJSON: Backbone$1.emulateJSON
+    emulateHTTP: Backbone$2.emulateHTTP,
+    emulateJSON: Backbone$2.emulateJSON
   });
 
   // Default JSON-request options.
@@ -200,15 +200,15 @@ Backbone$1.sync = function (method, model, options) {
   };
 
   // Make the request, allowing the user to override any Ajax options.
-  var xhr = options.xhr = Backbone$1.ajax(_.extend(params, options));
+  var xhr = options.xhr = Backbone$2.ajax(_.extend(params, options));
   model.trigger('request', model, xhr, options);
   return xhr;
 };
 
 // Set the default implementation of `Backbone.ajax` to proxy through to `$`.
 // Override this if you'd like to use a different library.
-Backbone$1.ajax = function () {
-  return Backbone$1.$.ajax.apply(Backbone$1.$, arguments);
+Backbone$2.ajax = function () {
+  return Backbone$2.$.ajax.apply(Backbone$2.$, arguments);
 };
 
 // Backbone.Events
@@ -224,7 +224,7 @@ Backbone$1.ajax = function () {
 //     object.on('expand', function(){ alert('expanded'); });
 //     object.trigger('expand');
 //
-var Events = Backbone$1.Events = {};
+var Events = Backbone$2.Events = {};
 
 // Regular expression used to split event strings.
 var eventSplitter = /\s+/;
@@ -562,7 +562,7 @@ _.extend(Model.prototype, Events, {
   // Proxy `Backbone.sync` by default -- but override this if you need
   // custom syncing semantics for *this* particular model.
   sync: function sync() {
-    return Backbone$1.sync.apply(this, arguments);
+    return Backbone$2.sync.apply(this, arguments);
   },
 
   // Get the value of an attribute.
@@ -967,7 +967,7 @@ _.extend(Collection.prototype, Events, {
 
   // Proxy `Backbone.sync` by default.
   sync: function sync() {
-    return Backbone$1.sync.apply(this, arguments);
+    return Backbone$2.sync.apply(this, arguments);
   },
 
   // Add a model, or list of models to the set. `models` may be Backbone
@@ -1517,7 +1517,7 @@ _.extend(View.prototype, Events, {
   // alternative DOM manipulation API and are only required to set the
   // `this.el` property.
   _setElement: function _setElement(el) {
-    this.$el = el instanceof Backbone$1.$ ? el : Backbone$1.$(el);
+    this.$el = el instanceof Backbone$2.$ ? el : Backbone$2.$(el);
     this.el = this.$el[0];
   },
 
@@ -1646,12 +1646,12 @@ _.extend(Router.prototype, Events, {
     }
     if (!callback) callback = this[name];
     var router = this;
-    Backbone$1.history.route(_route, function (fragment) {
+    Backbone$2.history.route(_route, function (fragment) {
       var args = router._extractParameters(_route, fragment);
       if (router.execute(callback, args, name) !== false) {
         router.trigger.apply(router, ['route:' + name].concat(args));
         router.trigger('route', name, args);
-        Backbone$1.history.trigger('route', router, name, args);
+        Backbone$2.history.trigger('route', router, name, args);
       }
     });
     return this;
@@ -1665,7 +1665,7 @@ _.extend(Router.prototype, Events, {
 
   // Simple proxy to `Backbone.history` to save a fragment into the history.
   navigate: function navigate(fragment, options) {
-    Backbone$1.history.navigate(fragment, options);
+    Backbone$2.history.navigate(fragment, options);
     return this;
   },
 
@@ -2021,9 +2021,92 @@ _.extend(History.prototype, Events, {
 //     Backbone may be freely distributed under the MIT license.
 //     For all details and documentation:
 //     http://backbonejs.org
+/**
+ * Will execute a function on matching child elements, or set a MutationObserver to detect if they are appended afterwards
+ * @param  {function} onFound   function to execute on matching elements once they exist
+ * @param  {String} [querySelector] optional CSS type selector to filter which elements should receive the onFound function
+ * @param  {Boolean}  [once] optional flag to execute the onFound function only on the first matching child
+ * @return {object} the element, as to keep the return chainable
+ */
+$.fn.waitforChild = function (onFound, querySelector, once) {
+  // allows for an object single parameter
+  if (typeof arguments[0] === 'object') {
+    once = arguments[0].once || false;
+    querySelector = arguments[0].querySelector || null;
+    onFound = arguments[0].onFound;
+  }
+
+  if (!onFound) {
+    onFound = function onFound() {};
+  }
+
+  var $this = this;
+
+  // If no querySelector was asked, and the element has children, apply the onFound function either to the first or to all of them
+  if (!querySelector && $this.children().length) {
+
+    if (once) {
+      onFound($this.children().first());
+    } else {
+      $this.children().each(function (key, element) {
+        onFound($(element));
+      });
+    }
+
+    // If the element already has matching children, apply the onFound function either to the first or to all of them
+  } else if ($this.find(querySelector).length !== 0) {
+    if (once) {
+      onFound($this.find(querySelector).first());
+    } else {
+      $this.find(querySelector).each(function (key, element) {
+        onFound($(element));
+      });
+    }
+  } else {
+    if ($this.length === 0) {
+      console.warn("Can't attach an observer to a null node", $this);
+    } else {
+      // Otherwise, set a new MutationObserver and inspect each new inserted child from now on.
+      var observer = new MutationObserver(function (mutations) {
+        var _this = this;
+        mutations.forEach(function (mutation) {
+          if (mutation.addedNodes) {
+            if (!querySelector) {
+              onFound($(mutation.addedNodes[0]));
+              if (once) {
+                _this.disconnect();
+              }
+            } else {
+              for (var i = 0; i < mutation.addedNodes.length; ++i) {
+                var addedNode = mutation.addedNodes[i];
+                if ($(addedNode).is(querySelector)) {
+                  onFound($(addedNode));
+                  if (once) {
+                    _this.disconnect();
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        });
+      });
+
+      observer.observe($this[0], {
+        childList: true,
+        subtree: true,
+        attributes: false,
+        characterData: false
+      });
+    }
+  }
+
+  return $this;
+};
+
 // Allow the `Backbone` object to serve as a global event bus, for folks who
 // want global "pubsub" in a convenient place.
-_.extend(Backbone$1, Events);
+_.extend(Backbone$2, Events);
 
 // Helpers
 // -------
@@ -2064,18 +2147,18 @@ var extend = function extend(protoProps, staticProps) {
 // Set up inheritance for the model, collection, router, view and history.
 Model.extend = Collection.extend = Router.extend = View.extend = History.extend = extend;
 
-Backbone$1.Model = Model;
+Backbone$2.Model = Model;
 
-Backbone$1.Collection = Collection;
+Backbone$2.Collection = Collection;
 
-Backbone$1.View = View;
+Backbone$2.View = View;
 
-Backbone$1.Router = Router;
+Backbone$2.Router = Router;
 
-Backbone$1.History = History;
+Backbone$2.History = History;
 
 // Create the default Backbone.history.
-Backbone$1.history = new History();
+Backbone$2.history = new History();
 
 /**
  * Backbone localStorage Adapter
@@ -2247,12 +2330,12 @@ extend$1(LocalStorage.prototype, {
 // localSync delegate to the model or collection's
 // *localStorage* property, which should be an instance of `Store`.
 // window.Store.sync and Backbone.localSync is deprecated, use Backbone.LocalStorage.sync instead
-LocalStorage.sync = window.Store.sync = Backbone$1.localSync = function (method, model, options) {
+LocalStorage.sync = window.Store.sync = Backbone$2.localSync = function (method, model, options) {
   var store = result(model, 'localStorage') || result(model.collection, 'localStorage');
 
   var resp, errorMessage;
   //If $ is having Deferred - use it.
-  var syncDfd = Backbone$1.$ ? Backbone$1.$.Deferred && Backbone$1.$.Deferred() : Backbone$1.Deferred && Backbone$1.Deferred();
+  var syncDfd = Backbone$2.$ ? Backbone$2.$.Deferred && Backbone$2.$.Deferred() : Backbone$2.Deferred && Backbone$2.Deferred();
 
   try {
 
@@ -2276,7 +2359,7 @@ LocalStorage.sync = window.Store.sync = Backbone$1.localSync = function (method,
 
   if (resp) {
     if (options && options.success) {
-      if (Backbone$1.VERSION === "0.9.10") {
+      if (Backbone$2.VERSION === "0.9.10") {
         options.success(model, resp, options);
       } else {
         options.success(resp);
@@ -2288,7 +2371,7 @@ LocalStorage.sync = window.Store.sync = Backbone$1.localSync = function (method,
   } else {
     errorMessage = errorMessage ? errorMessage : "Record Not Found";
 
-    if (options && options.error) if (Backbone$1.VERSION === "0.9.10") {
+    if (options && options.error) if (Backbone$2.VERSION === "0.9.10") {
       options.error(model, errorMessage, options);
     } else {
       options.error(errorMessage);
@@ -2304,25 +2387,25 @@ LocalStorage.sync = window.Store.sync = Backbone$1.localSync = function (method,
   return syncDfd && syncDfd.promise();
 };
 
-Backbone$1.ajaxSync = Backbone$1.sync;
+Backbone$2.ajaxSync = Backbone$2.sync;
 
-Backbone$1.getSyncMethod = function (model, options) {
+Backbone$2.getSyncMethod = function (model, options) {
   var forceAjaxSync = options && options.ajaxSync;
 
   if (!forceAjaxSync && (result(model, 'localStorage') || result(model.collection, 'localStorage'))) {
-    return Backbone$1.localSync;
+    return Backbone$2.localSync;
   }
 
-  return Backbone$1.ajaxSync;
+  return Backbone$2.ajaxSync;
 };
 
 // Override 'Backbone.sync' to default to localSync,
 // the original 'Backbone.sync' is still available in 'Backbone.ajaxSync'
-Backbone$1.sync = function (method, model, options) {
-  return Backbone$1.getSyncMethod(model, options).apply(this, [method, model, options]);
+Backbone$2.sync = function (method, model, options) {
+  return Backbone$2.getSyncMethod(model, options).apply(this, [method, model, options]);
 };
 
-Backbone$1.LocalStorage = LocalStorage;
+Backbone$2.LocalStorage = LocalStorage;
 
 var __bind = function __bind(fn, me) {
   return function () {
@@ -2370,7 +2453,7 @@ var Modal = function (_super) {
     this.checkKey = __bind(this.checkKey, this);
     this.rendererCompleted = __bind(this.rendererCompleted, this);
     this.args = Array.prototype.slice.apply(arguments);
-    Backbone$1.View.prototype.constructor.apply(this, this.args);
+    Backbone$2.View.prototype.constructor.apply(this, this.args);
     this.setUIElements();
   }
 
@@ -2381,7 +2464,7 @@ var Modal = function (_super) {
       options = 0;
     }
     this.$el.addClass("" + this.prefix + "-wrapper");
-    this.modalEl = Backbone$1.$('<div />').addClass("" + this.prefix + "-modal");
+    this.modalEl = Backbone$2.$('<div />').addClass("" + this.prefix + "-modal");
     if (this.template) {
       this.modalEl.html(this.buildTemplate(this.template, data));
     }
@@ -2392,7 +2475,7 @@ var Modal = function (_super) {
     } else {
       this.viewContainerEl = this.modalEl;
     }
-    Backbone$1.$(':focus').blur();
+    Backbone$2.$(':focus').blur();
     if (((_ref = this.views) != null ? _ref.length : void 0) > 0 && this.showViewOnRender) {
       this.openAt(options);
     }
@@ -2417,7 +2500,7 @@ var Modal = function (_super) {
   Modal.prototype.rendererCompleted = function () {
     var _ref;
     if (this.keyControl) {
-      Backbone$1.$('body').on('keyup.bbm', this.checkKey);
+      Backbone$2.$('body').on('keyup.bbm', this.checkKey);
       this.$el.on('mouseup.bbm', this.clickOutsideElement);
       this.$el.on('click.bbm', this.clickOutside);
     }
@@ -2541,7 +2624,7 @@ var Modal = function (_super) {
   };
 
   Modal.prototype.clickOutsideElement = function (e) {
-    return this.outsideElement = Backbone$1.$(e.target);
+    return this.outsideElement = Backbone$2.$(e.target);
   };
 
   Modal.prototype.buildTemplate = function (template, data) {
@@ -2549,7 +2632,7 @@ var Modal = function (_super) {
     if (typeof template === 'function') {
       templateFunction = template;
     } else {
-      templateFunction = _.template(Backbone$1.$(template).html());
+      templateFunction = _.template(Backbone$2.$(template).html());
     }
     return templateFunction(data);
   };
@@ -2564,7 +2647,7 @@ var Modal = function (_super) {
     }
     if (_.isFunction(viewType)) {
       view = new viewType(options || this.args[0]);
-      if (view instanceof Backbone$1.View) {
+      if (view instanceof Backbone$2.View) {
         return {
           el: view.render().$el,
           view: view
@@ -2631,12 +2714,12 @@ var Modal = function (_super) {
       top: -9999,
       left: -9999
     };
-    tester = Backbone$1.$('<tester/>').css(style);
+    tester = Backbone$2.$('<tester/>').css(style);
     tester.html(this.$el.clone().css(style));
-    if (Backbone$1.$('tester').length !== 0) {
-      Backbone$1.$('tester').replaceWith(tester);
+    if (Backbone$2.$('tester').length !== 0) {
+      Backbone$2.$('tester').replaceWith(tester);
     } else {
-      Backbone$1.$('body').append(tester);
+      Backbone$2.$('body').append(tester);
     }
     if (this.viewContainer) {
       container = tester.find(this.viewContainer);
@@ -2686,7 +2769,7 @@ var Modal = function (_super) {
     if (e != null) {
       e.preventDefault();
     }
-    if (Backbone$1.$(e.target).is('textarea')) {
+    if (Backbone$2.$(e.target).is('textarea')) {
       return;
     }
     if (this.beforeSubmit) {
@@ -2738,10 +2821,10 @@ var Modal = function (_super) {
 
   Modal.prototype.destroy = function () {
     var removeViews;
-    Backbone$1.$('body').off('keyup.bbm', this.checkKey);
+    Backbone$2.$('body').off('keyup.bbm', this.checkKey);
     this.$el.off('mouseup.bbm', this.clickOutsideElement);
     this.$el.off('click.bbm', this.clickOutside);
-    Backbone$1.$('tester').remove();
+    Backbone$2.$('tester').remove();
     if (typeof this.onDestroy === "function") {
       this.onDestroy();
     }
@@ -2828,9 +2911,9 @@ var Modal = function (_super) {
   };
 
   return Modal;
-}(Backbone$1.View);
+}(Backbone$2.View);
 
-Backbone$1.Modal = Modal;
+Backbone$2.Modal = Modal;
 
 /**
  * Backbone Forms v0.13.0
@@ -2851,7 +2934,7 @@ var root$1 = typeof self == 'object' && self.self === self && self || typeof glo
 //FORM
 //==================================================================================================
 
-var Form = Backbone$1.View.extend({
+var Form = Backbone$2.View.extend({
 
   /**
    * Constructor
@@ -3255,7 +3338,7 @@ var Form = Backbone$1.View.extend({
       this.hasFocus = false;
     }
 
-    return Backbone$1.View.prototype.trigger.apply(this, arguments);
+    return Backbone$2.View.prototype.trigger.apply(this, arguments);
   },
 
   /**
@@ -3273,7 +3356,7 @@ var Form = Backbone$1.View.extend({
       field.remove();
     });
 
-    return Backbone$1.View.prototype.remove.apply(this, arguments);
+    return Backbone$2.View.prototype.remove.apply(this, arguments);
   }
 
 }, {
@@ -3400,7 +3483,7 @@ Form.validators = function () {
 //FIELDSET
 //==================================================================================================
 
-Form.Fieldset = Backbone$1.View.extend({
+Form.Fieldset = Backbone$2.View.extend({
 
   /**
    * Constructor
@@ -3505,7 +3588,7 @@ Form.Fieldset = Backbone$1.View.extend({
       field.remove();
     });
 
-    Backbone$1.View.prototype.remove.call(this);
+    Backbone$2.View.prototype.remove.call(this);
   }
 
 }, {
@@ -3525,7 +3608,7 @@ Form.Fieldset = Backbone$1.View.extend({
 //FIELD
 //==================================================================================================
 
-Form.Field = Backbone$1.View.extend({
+Form.Field = Backbone$2.View.extend({
 
   /**
    * Constructor
@@ -3783,7 +3866,7 @@ Form.Field = Backbone$1.View.extend({
   remove: function remove() {
     this.editor.remove();
 
-    Backbone$1.View.prototype.remove.call(this);
+    Backbone$2.View.prototype.remove.call(this);
   }
 
 }, {
@@ -3837,7 +3920,7 @@ Form.NestedField = Form.Field.extend({
  * @param {Object} [options.validators] Validators; falls back to those stored on schema
  * @param {Object} [options.form]       The form
  */
-Form.Editor = Form.editors.Base = Backbone$1.View.extend({
+Form.Editor = Form.editors.Base = Backbone$2.View.extend({
 
   defaultValue: null,
 
@@ -3980,7 +4063,7 @@ Form.Editor = Form.editors.Base = Backbone$1.View.extend({
       this.hasFocus = false;
     }
 
-    return Backbone$1.View.prototype.trigger.apply(this, arguments);
+    return Backbone$2.View.prototype.trigger.apply(this, arguments);
   },
 
   /**
@@ -4361,7 +4444,7 @@ Form.editors.Select = Form.editors.Base.extend({
     var self = this;
 
     //If a collection was passed, check if it needs fetching
-    if (options instanceof Backbone$1.Collection) {
+    if (options instanceof Backbone$2.Collection) {
       var collection = options;
 
       //Don't do the fetch if it's already populated
@@ -4422,7 +4505,7 @@ Form.editors.Select = Form.editors.Base.extend({
       }
 
       //Or Backbone collection
-      else if (options instanceof Backbone$1.Collection) {
+      else if (options instanceof Backbone$2.Collection) {
           html = this._collectionToHtml(options);
         } else if (_.isFunction(options)) {
           var newOptions;
@@ -4793,7 +4876,7 @@ Form.editors.Object = Form.editors.Base.extend({
   remove: function remove() {
     this.nestedForm.remove();
 
-    Backbone$1.View.prototype.remove.call(this);
+    Backbone$2.View.prototype.remove.call(this);
   },
 
   validate: function validate() {
@@ -5238,7 +5321,7 @@ Form.editors.DateTime = Form.editors.Base.extend({
 Form.VERSION = '0.13.0';
 
 //Exports
-Backbone$1.Form = Form;
+Backbone$2.Form = Form;
 
 /**
  * Will execute a function on matching child elements, or set a MutationObserver to detect if they are appended afterwards
@@ -5322,10 +5405,5 @@ $.fn.waitforChild = function (onFound, querySelector, once) {
 
 	return $this;
 };
-var ig_backbone = {
-	$: $,
-	_: _,
-	Backbone: Backbone$1
-};
 
-export { $, _, Backbone$1 as Backbone };export default ig_backbone;
+export { $, _, Backbone$2 as Backbone };export default Backbone$2;

@@ -1,8 +1,6 @@
 (function (window, QUnit, undefined) {
 
   window.Backbone = IGBackbone.Backbone;
-  window._ = IGBackbone._;
-  window.$ = IGBackbone.$;
 
   console.log('Backbone is', Backbone.VERSION);
   console.log('$ is', $.fn.jquery);

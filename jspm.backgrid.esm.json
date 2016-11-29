@@ -32,11 +32,11 @@
 
 		"ig_backbone": {
 			"main": "ig_backbone.js",
-			"format": "amd",
+			"format": "esm",
 			"defaultExtension": false,
 
 			"map": {
-				"backbone": "./vendor/backbone.es6.js",
+
 				"backgrid": "./vendor/backgrid.es6.js"
 			}
 		}
