@@ -1,7 +1,8 @@
 import $ from 'jquery';
 import _ from 'underscore';
+import Backbone from 'backbone';
+
 import {
-	Backbone,
 	Backgrid
 } from 'backgrid';
 
@@ -9,7 +10,6 @@ import EditableHeaderCell from './editable_headercell.js';
 import GeocodableEditor from './geocodable_editor.js';
 
 import './backgrid-sizeable-columns.js';
-import './backgrid-paginator.js';
 
 _.templateSettings = {
 	interpolate: /\{\{(.+?)\}\}/g,

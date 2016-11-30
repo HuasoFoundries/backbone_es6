@@ -1398,8 +1398,8 @@ describe("A SelectCellEditor", function () {
 
     var editor_column_name = editor.column.get("name"),
       get_gender = editor.model.get(editor_column_name);
-    console.log('editor_column_name', editor_column_name, 'get_gender', get_gender);
-    expect(editor.model.get(editor_column_name).length).toBe(0);
+
+    expect(editor.model.get(editor_column_name)).toBe(null);
 
   });
 

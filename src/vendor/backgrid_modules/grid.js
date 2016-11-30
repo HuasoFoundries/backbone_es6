@@ -1,5 +1,6 @@
+import Backbone from 'backbone';
+
 import {
-  Backbone,
   Backgrid
 } from './core.js';
 import {
@@ -14,7 +15,6 @@ import {
 import {
   Footer
 } from './footer.js';
-
 
 /*
   backgrid

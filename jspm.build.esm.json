@@ -36,8 +36,7 @@
 			"defaultExtension": false,
 
 			"map": {
-				"backbone": "./vendor/backbone.es6.js",
-				"backgrid": "./vendor/backgrid.es6.js"
+				"backbone": "./vendor/backbone.es6.js"
 			}
 		}
 	}

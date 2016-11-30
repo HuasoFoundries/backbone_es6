@@ -1,6 +1,5 @@
-import {
-  Backbone
-} from '../core.js';
+import Backbone from 'backbone';
+
 import {
   Column
 } from '../column.js';

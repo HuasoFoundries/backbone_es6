@@ -1,10 +1,4 @@
 import Backbone from 'backbone';
-import {
-	PageableCollection
-}
-from './backbone.paginator.js';
-
-Backbone.PageableCollection = PageableCollection;
 
 function lpad(str, length, padstr) {
 	var paddingLen = length - (str + '').length;
@@ -50,6 +44,5 @@ _.extend(Backgrid, Backbone.Events);
 
 export {
 	lpad,
-	Backbone,
 	Backgrid
 };

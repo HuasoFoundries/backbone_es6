@@ -2,538 +2,7 @@ import Backbone from 'backbone';
 import _$1 from 'underscore';
 import $$1 from 'jquery';
 
-/*
-  backbone.paginator
-  http://github.com/backbone-paginator/backbone.paginator
-
-  Copyright (c) 2016 Jimmy Yuen Ho Wong and contributors
-
-  @module
-  @license MIT
-*/var _extend=_$1.extend; var _omit=_$1.omit; var _clone=_$1.clone; var _each=_$1.each; var _pick=_$1.pick; var _contains=_$1.contains; var _isEmpty=_$1.isEmpty; var _pairs=_$1.pairs; var _invert=_$1.invert; var _isArray=_$1.isArray; var _isFunction=_$1.isFunction; var _isObject=_$1.isObject; var _keys=_$1.keys; var _isUndefined=_$1.isUndefined; var ceil=Math.ceil; var floor=Math.floor; var max=Math.max; var BBColProto=Backbone.Collection.prototype;function finiteInt(val,name){if(!_$1.isNumber(val)||_$1.isNaN(val)||!_$1.isFinite(val)||~~val!==val){throw new TypeError("`"+name+"` must be a finite integer");}return val;}function queryStringToParams(qs){var kvp,k,v,ls,params={},decode=decodeURIComponent,kvps=qs.split('&');for(var i=0,l=kvps.length;i<l;i++){var param=kvps[i];kvp=param.split('='),k=kvp[0],v=kvp[1];if(v==null)v=true;k=decode(k),v=decode(v),ls=params[k];if(_isArray(ls))ls.push(v);else if(ls)params[k]=[ls,v];else params[k]=v;}return params;}// hack to make sure the whatever event handlers for this event is run
-// before func is, and the event handlers that func will trigger.
-function runOnceAtLastHandler(col,event,func){var eventHandlers=col._events[event];if(eventHandlers&&eventHandlers.length){var lastHandler=eventHandlers[eventHandlers.length-1],oldCallback=lastHandler.callback;lastHandler.callback=function(){try{oldCallback.apply(this,arguments);func();}catch(e){throw e;}finally{lastHandler.callback=oldCallback;}};}else func();}var PARAM_TRIM_RE=/[\s'"]/g; var URL_TRIM_RE=/[<>\s'"]/g; var PageableCollection=Backbone.Collection.extend({/**
-     The container object to store all pagination states.
-
-     You can override the default state by extending this class or specifying
-     them in an `options` hash to the constructor.
-
-     @property {number} firstPage = 1 - The first page index. Set to 0 if
-     your server API uses 0-based indices. You should only override this value
-     during extension, initialization or reset by the server after
-     fetching. This value should be read only at other times.
-
-     @property {number} lastPage = null - The last page index. This value
-     is __read only__ and it's calculated based on whether `firstPage` is 0 or
-     1, during bootstrapping, fetching and resetting. Please don't change this
-     value under any circumstances.
-
-     @property {number} currentPage = null - The current page index. You
-     should only override this value during extension, initialization or reset
-     by the server after fetching. This value should be read only at other
-     times. Can be a 0-based or 1-based index, depending on whether
-     `firstPage` is 0 or 1. If left as default, it will be set to `firstPage`
-     on initialization.
-
-     @property {number} pageSize = 25 - How many records to show per
-     page. This value is __read only__ after initialization, if you want to
-     change the page size after initialization, you must call
-     PageableCollection#setPageSize.
-
-     @property {number} totalPages = null - How many pages there are. This
-     value is __read only__ and it is calculated from `totalRecords`.
-
-     @property {number} totalRecords = null - How many records there
-     are. This value is __required__ under server mode. This value is optional
-     for client mode as the number will be the same as the number of models
-     during bootstrapping and during fetching, either supplied by the server
-     in the metadata, or calculated from the size of the response.
-
-     @property {string} sortKey = null - The model attribute to use for
-     sorting.
-
-     @property {number} order = -1 - The order to use for sorting. Specify
-     -1 for ascending order or 1 for descending order. If 0, no client side
-     sorting will be done and the order query parameter will not be sent to
-     the server during a fetch.
-  */state:{firstPage:1,lastPage:null,currentPage:null,pageSize:25,totalPages:null,totalRecords:null,sortKey:null,order:-1},/**
-     @property {string} mode = "server" The mode of operations for this
-     collection. `"server"` paginates on the server-side, `"client"` paginates
-     on the client-side and `"infinite"` paginates on the server-side for APIs
-     that do not support `totalRecords`.
-  */mode:"server",/**
-     A translation map to convert PageableCollection state attributes
-     to the query parameters accepted by your server API.
-
-     You can override the default state by extending this class or specifying
-     them in `options.queryParams` object hash to the constructor.
-
-     @property {string} currentPage = "page"
-     @property {string} pageSize = "per_page"
-     @property {string} totalPages = "total_pages"
-     @property {string} totalRecords = "total_entries"
-     @property {string} sortKey = "sort_by"
-     @property {string} order = "order"
-     @property {string} directions = {"-1": "asc", "1": "desc"} - A map for
-     translating a PageableCollection#state.order constant to the ones your
-     server API accepts.
-  */queryParams:{currentPage:"page",pageSize:"per_page",totalPages:"total_pages",totalRecords:"total_entries",sortKey:"sort_by",order:"order",directions:{"-1":"asc","1":"desc"}},/**
-     Given a list of models or model attributues, bootstraps the full
-     collection in client mode or infinite mode, or just the page you want in
-     server mode.
-
-     If you want to initialize a collection to a different state than the
-     default, you can specify them in `options.state`. Any state parameters
-     supplied will be merged with the default. If you want to change the
-     default mapping from PageableCollection#state keys to your server API's
-     query parameter names, you can specifiy an object hash in
-     `option.queryParams`. Likewise, any mapping provided will be merged with
-     the default. Lastly, all Backbone.Collection constructor options are also
-     accepted.
-
-     See:
-
-     - PageableCollection#state
-     - PageableCollection#queryParams
-     - [Backbone.Collection#initialize](http://backbonejs.org/#Collection-constructor)
-
-     @constructor
-
-     @property {Backbone.Collection} fullCollection - __CLIENT MODE ONLY__
-     This collection is the internal storage for the bootstrapped or fetched
-     models. You can use this if you want to operate on all the pages.
-
-     @param {Array.<Object>} models
-
-     @param {Object} options
-
-     @param {function(*, *): number} options.comparator - If specified, this
-     comparator is set to the current page under server mode, or the
-     PageableCollection#fullCollection otherwise.
-
-     @param {boolean} options.full 0 If `false` and either a
-     `options.comparator` or `sortKey` is defined, the comparator is attached
-     to the current page. Default is `true` under client or infinite mode and
-     the comparator will be attached to the PageableCollection#fullCollection.
-
-     @param {Object} options.state - The state attributes overriding the defaults.
-
-     @param {string} options.state.sortKey - The model attribute to use for
-     sorting. If specified instead of `options.comparator`, a comparator will
-     be automatically created using this value, and optionally a sorting order
-     specified in `options.state.order`. The comparator is then attached to
-     the new collection instance.
-
-     @param {number} options.state.order - The order to use for sorting. Specify
-     -1 for ascending order and 1 for descending order.
-
-     @param {Object} options.queryParam
-  */constructor:function constructor(models,options){BBColProto.constructor.apply(this,arguments);options=options||{};var mode=this.mode=options.mode||this.mode||PageableProto.mode,queryParams=_extend({},PageableProto.queryParams,this.queryParams,options.queryParams||{});queryParams.directions=_extend({},PageableProto.queryParams.directions,this.queryParams.directions,queryParams.directions);this.queryParams=queryParams;var state=this.state=_extend({},PageableProto.state,this.state,options.state);state.currentPage=state.currentPage==null?state.firstPage:state.currentPage;if(!_isArray(models))models=models?[models]:[];models=models.slice();if(mode!="server"&&state.totalRecords==null&&!_isEmpty(models)){state.totalRecords=models.length;}this.switchMode(mode,_extend({fetch:false,resetState:false,models:models},options));var comparator=options.comparator;if(state.sortKey&&!comparator){this.setSorting(state.sortKey,state.order,options);}if(mode!="server"){var fullCollection=this.fullCollection;if(comparator&&options.full){this.comparator=null;fullCollection.comparator=comparator;}if(options.full)fullCollection.sort();// make sure the models in the current page and full collection have the
-// same references
-if(!_isEmpty(models)){this.reset(models,_extend({silent:true},options));this.getPage(state.currentPage);models.splice.apply(models,[0,models.length].concat(this.models));}}this._initState=_clone(this.state);},/**
-     Makes a Backbone.Collection that contains all the pages.
-
-     @private
-     @param {Array.<Object|Backbone.Model>} models
-     @param {Object} options Options for Backbone.Collection constructor.
-     @return {Backbone.Collection}
-  */_makeFullCollection:function _makeFullCollection(models,options){var properties=["url","model","sync","comparator"],thisProto=this.constructor.prototype,i,length,prop,proto={};for(i=0,length=properties.length;i<length;i++){prop=properties[i];if(!_isUndefined(thisProto[prop])){proto[prop]=thisProto[prop];}}var fullCollection=new(Backbone.Collection.extend(proto))(models,options);for(i=0,length=properties.length;i<length;i++){prop=properties[i];if(this[prop]!==thisProto[prop]){fullCollection[prop]=this[prop];}}return fullCollection;},/**
-     Factory method that returns a Backbone event handler that responses to
-     the `add`, `remove`, `reset`, and the `sort` events. The returned event
-     handler will synchronize the current page collection and the full
-     collection's models.
-
-     @private
-
-     @fires PageableCollection#pageable:state:change when handling an
-     `add`, `remove`, or `reset` event
-
-     @param {PageableCollection} pageCol
-     @param {Backbone.Collection} fullCol
-
-     @return {function(string, Backbone.Model, Backbone.Collection, Object)}
-     Collection event handler
-  */_makeCollectionEventHandler:function _makeCollectionEventHandler(pageCol,fullCol){return function collectionEventHandler(event,model,collection,options){var handlers=pageCol._handlers;_each(_keys(handlers),function(event){var handler=handlers[event];pageCol.off(event,handler);fullCol.off(event,handler);});var state=_clone(pageCol.state),firstPage=state.firstPage,currentPage=firstPage===0?state.currentPage:state.currentPage-1,pageSize=state.pageSize,pageStart=currentPage*pageSize,pageEnd=pageStart+pageSize;if(event=="add"){var pageIndex,fullIndex,addAt,colToAdd,options=options||{};if(collection==fullCol){fullIndex=fullCol.indexOf(model);if(fullIndex>=pageStart&&fullIndex<pageEnd){colToAdd=pageCol;pageIndex=addAt=fullIndex-pageStart;}}else{pageIndex=pageCol.indexOf(model);fullIndex=pageStart+pageIndex;colToAdd=fullCol;var addAt=!_isUndefined(options.at)?options.at+pageStart:fullIndex;}if(!options.onRemove){++state.totalRecords;delete options.onRemove;}pageCol.state=pageCol._checkState(state);if(colToAdd){colToAdd.add(model,_extend({},options,{at:addAt}));var modelToRemove=pageIndex>=pageSize?model:!_isUndefined(options.at)&&addAt<pageEnd&&pageCol.length>pageSize?pageCol.at(pageSize):null;if(modelToRemove){runOnceAtLastHandler(collection,event,function(){pageCol.remove(modelToRemove,{onAdd:true});});}}if(!options.silent)pageCol.trigger("pageable:state:change",pageCol.state);}// remove the model from the other collection as well
-if(event=="remove"){if(!options.onAdd){// decrement totalRecords and update totalPages and lastPage
-if(! --state.totalRecords){state.totalRecords=null;state.totalPages=null;}else{var totalPages=state.totalPages=ceil(state.totalRecords/pageSize);state.lastPage=firstPage===0?totalPages-1:totalPages||firstPage;if(state.currentPage>totalPages)state.currentPage=state.lastPage;}pageCol.state=pageCol._checkState(state);var nextModel,removedIndex=options.index;if(collection==pageCol){if(nextModel=fullCol.at(pageEnd)){runOnceAtLastHandler(pageCol,event,function(){pageCol.push(nextModel,{onRemove:true});});}else if(!pageCol.length&&state.totalRecords){pageCol.reset(fullCol.models.slice(pageStart-pageSize,pageEnd-pageSize),_extend({},options,{parse:false}));}fullCol.remove(model);}else if(removedIndex>=pageStart&&removedIndex<pageEnd){if(nextModel=fullCol.at(pageEnd-1)){runOnceAtLastHandler(pageCol,event,function(){pageCol.push(nextModel,{onRemove:true});});}pageCol.remove(model);if(!pageCol.length&&state.totalRecords){pageCol.reset(fullCol.models.slice(pageStart-pageSize,pageEnd-pageSize),_extend({},options,{parse:false}));}}}else delete options.onAdd;if(!options.silent)pageCol.trigger("pageable:state:change",pageCol.state);}if(event=="reset"){options=collection;collection=model;// Reset that's not a result of getPage
-if(collection==pageCol&&options.from==null&&options.to==null){var head=fullCol.models.slice(0,pageStart),tail=fullCol.models.slice(pageStart+pageCol.models.length);fullCol.reset(head.concat(pageCol.models).concat(tail),options);}else if(collection==fullCol){if(!(state.totalRecords=fullCol.models.length)){state.totalRecords=null;state.totalPages=null;}if(pageCol.mode=="client"){firstPage=state.lastPage=state.currentPage=state.firstPage;currentPage=firstPage===0?state.currentPage:state.currentPage-1;pageStart=currentPage*pageSize;pageEnd=pageStart+pageSize;}pageCol.state=pageCol._checkState(state);pageCol.reset(fullCol.models.slice(pageStart,pageEnd),_extend({},options,{parse:false}));}if(!options.silent)pageCol.trigger("pageable:state:change",pageCol.state);}if(event=="sort"){options=collection;collection=model;if(collection===fullCol){pageCol.reset(fullCol.models.slice(pageStart,pageEnd),_extend({},options,{parse:false}));}}_each(_keys(handlers),function(event){var handler=handlers[event];_each([pageCol,fullCol],function(col){col.on(event,handler);var callbacks=col._events[event]||[];callbacks.unshift(callbacks.pop());});});};},/**
-     Sanity check this collection's pagination states. Only perform checks
-     when all the required pagination state values are defined and not null.
-     If `totalPages` is undefined or null, it is set to `totalRecords` /
-     `pageSize`. `lastPage` is set according to whether `firstPage` is 0 or 1
-     when no error occurs.
-
-     @private
-
-     @throws {TypeError} If `totalRecords`, `pageSize`, `currentPage` or
-     `firstPage` is not a finite integer.
-
-     @throws {RangeError} If `pageSize`, `currentPage` or `firstPage` is out
-     of bounds.
-
-     @return {Object} Returns the `state` object if no error was found.
-  */_checkState:function _checkState(state){var mode=this.mode,links=this.links,totalRecords=state.totalRecords,pageSize=state.pageSize,currentPage=state.currentPage,firstPage=state.firstPage,totalPages=state.totalPages;if(totalRecords!=null&&pageSize!=null&&currentPage!=null&&firstPage!=null&&(mode=="infinite"?links:true)){totalRecords=finiteInt(totalRecords,"totalRecords");pageSize=finiteInt(pageSize,"pageSize");currentPage=finiteInt(currentPage,"currentPage");firstPage=finiteInt(firstPage,"firstPage");if(pageSize<1){throw new RangeError("`pageSize` must be >= 1");}totalPages=state.totalPages=ceil(totalRecords/pageSize);if(firstPage<0||firstPage>1){throw new RangeError("`firstPage must be 0 or 1`");}state.lastPage=firstPage===0?max(0,totalPages-1):totalPages||firstPage;if(mode=="infinite"){if(!links[currentPage+'']){throw new RangeError("No link found for page "+currentPage);}}else if(currentPage<firstPage||totalPages>0&&(firstPage?currentPage>totalPages:currentPage>=totalPages)){throw new RangeError("`currentPage` must be firstPage <= currentPage "+(firstPage?"<":"<=")+" totalPages if "+firstPage+"-based. Got "+currentPage+'.');}}return state;},/**
-     Change the page size of this collection.
-
-     Under most if not all circumstances, you should call this method to
-     change the page size of a pageable collection because it will keep the
-     pagination state sane. By default, the method will recalculate the
-     current page number to one that will retain the current page's models
-     when increasing the page size. When decreasing the page size, this method
-     will retain the last models to the current page that will fit into the
-     smaller page size.
-
-     If `options.first` is true, changing the page size will also reset the
-     current page back to the first page instead of trying to be smart.
-
-     For server mode operations, changing the page size will trigger a
-     PageableCollection#fetch and subsequently a `reset` event.
-
-     For client mode operations, changing the page size will `reset` the
-     current page by recalculating the current page boundary on the client
-     side.
-
-     If `options.fetch` is true, a fetch can be forced if the collection is in
-     client mode.
-
-     @param {number} pageSize - The new page size to set to PageableCollection#state.
-     @param {Object} options - {@link PageableCollection#fetch} options.
-     @param {boolean} options.first = false 0 Reset the current page number to
-     the first page if `true`.
-     @param {boolean} options.fetch - If `true`, force a fetch in client mode.
-
-     @throws {TypeError} If `pageSize` is not a finite integer.
-     @throws {RangeError} If `pageSize` is less than 1.
-
-     @chainable
-     @return {XMLHttpRequest|PageableCollection} The XMLHttpRequest
-     from fetch or this.
-  */setPageSize:function setPageSize(pageSize,options){pageSize=finiteInt(pageSize,"pageSize");options=options||{first:false};var state=this.state,totalPages=ceil(state.totalRecords/pageSize),currentPage=totalPages?max(state.firstPage,floor(totalPages*state.currentPage/state.totalPages)):state.firstPage;state=this.state=this._checkState(_extend({},state,{pageSize:pageSize,currentPage:options.first?state.firstPage:currentPage,totalPages:totalPages}));return this.getPage(state.currentPage,_omit(options,["first"]));},/**
-     Switching between client, server and infinite mode.
-
-     If switching from client to server mode, the #fullCollection is emptied
-     first and then deleted and a fetch is immediately issued for the current
-     page from the server. Pass `false` to `options.fetch` to skip fetching.
-
-     If switching to infinite mode, and if `options.models` is given for an
-     array of models,PageableCollection#links will be populated with a URL per
-     page, using the default URL for this collection.
-
-     If switching from server to client mode, all of the pages are immediately
-     refetched. If you have too many pages, you can pass `false` to
-     `options.fetch` to skip fetching.
-
-     If switching to any mode from infinite mode, thePageableCollection#links
-     will be deleted.
-
-     @fires PageableCollection#pageable:state:change
-
-     @param {"server"|"client"|"infinite"} mode - The mode to switch to.
-
-     @param {Object} options
-
-     @param {boolean} options.fetch = true - If `false`, no fetching is done.
-
-     @param {boolean} options.resetState = true - If 'false', the state is not
-     reset, but checked for sanity instead.
-
-     @chainable
-     @return {XMLHttpRequest|PageableCollection} The XMLHttpRequest
-     from fetch or this if `options.fetch` is `false`.
-  */switchMode:function switchMode(mode,options){if(!_contains(["server","client","infinite"],mode)){throw new TypeError('`mode` must be one of "server", "client" or "infinite"');}options=options||{fetch:true,resetState:true};var state=this.state=options.resetState?_clone(this._initState):this._checkState(_extend({},this.state));this.mode=mode;var self=this,fullCollection=this.fullCollection,handlers=this._handlers=this._handlers||{},handler;if(mode!="server"&&!fullCollection){fullCollection=this._makeFullCollection(options.models||[],options);fullCollection.pageableCollection=this;this.fullCollection=fullCollection;var allHandler=this._makeCollectionEventHandler(this,fullCollection);_each(["add","remove","reset","sort"],function(event){handlers[event]=handler=_$1.bind(allHandler,{},event);self.on(event,handler);fullCollection.on(event,handler);});fullCollection.comparator=this._fullComparator;}else if(mode=="server"&&fullCollection){_each(_keys(handlers),function(event){handler=handlers[event];self.off(event,handler);fullCollection.off(event,handler);});delete this._handlers;this._fullComparator=fullCollection.comparator;delete this.fullCollection;}if(mode=="infinite"){var links=this.links={},firstPage=state.firstPage,totalPages=ceil(state.totalRecords/state.pageSize),lastPage=firstPage===0?max(0,totalPages-1):totalPages||firstPage;for(var i=state.firstPage;i<=lastPage;i++){links[i]=this.url;}}else if(this.links)delete this.links;if(!options.silent)this.trigger("pageable:state:change",state);return options.fetch?this.fetch(_omit(options,"fetch","resetState")):this;},/**
-     @return {boolean} `true` if this collection can page backward, `false`
-     otherwise.
-  */hasPreviousPage:function hasPreviousPage(){var state=this.state,currentPage=state.currentPage;if(this.mode!="infinite")return currentPage>state.firstPage;return!!this.links[currentPage-1];},/**
-     @return {boolean} `true` if this collection can page forward, `false`
-     otherwise.
-  */hasNextPage:function hasNextPage(){var state=this.state,currentPage=this.state.currentPage;if(this.mode!="infinite")return currentPage<state.lastPage;return!!this.links[currentPage+1];},/**
-     Fetch the first page in server mode, or reset the current page of this
-     collection to the first page in client or infinite mode.
-
-     @param {Object} options {@linkPageableCollection#getPage} options.
-
-     @chainable
-     @return {XMLHttpRequest|PageableCollection} The XMLHttpRequest
-     from fetch or this.
-  */getFirstPage:function getFirstPage(options){return this.getPage("first",options);},/**
-     Fetch the previous page in server mode, or reset the current page of this
-     collection to the previous page in client or infinite mode.
-
-     @param {Object} options {@linkPageableCollection#getPage} options.
-
-     @chainable
-     @return {XMLHttpRequest|PageableCollection} The XMLHttpRequest
-     from fetch or this.
-  */getPreviousPage:function getPreviousPage(options){return this.getPage("prev",options);},/**
-     Fetch the next page in server mode, or reset the current page of this
-     collection to the next page in client mode.
-
-     @param {Object} options {@linkPageableCollection#getPage} options.
-
-     @chainable
-     @return {XMLHttpRequest|PageableCollection} The XMLHttpRequest
-     from fetch or this.
-  */getNextPage:function getNextPage(options){return this.getPage("next",options);},/**
-     Fetch the last page in server mode, or reset the current page of this
-     collection to the last page in client mode.
-
-     @param {Object} options {@linkPageableCollection#getPage} options.
-
-     @chainable
-     @return {XMLHttpRequest|PageableCollection} The XMLHttpRequest
-     from fetch or this.
-  */getLastPage:function getLastPage(options){return this.getPage("last",options);},/**
-     Given a page index, set PageableCollection#state.currentPage to that
-     index. If this collection is in server mode, fetch the page using the
-     updated state, otherwise, reset the current page of this collection to
-     the page specified by `index` in client mode. If `options.fetch` is true,
-     a fetch can be forced in client mode before resetting the current
-     page. Under infinite mode, if the index is less than the current page, a
-     reset is done as in client mode. If the index is greater than the current
-     page number, a fetch is made with the results **appended**
-     toPageableCollection#fullCollection.  The current page will then be reset
-     after fetching.
-
-     @fires PageableCollection#pageable:state:change
-
-     @param {number|string} index - The page index to go to, or the page name to
-     look up fromPageableCollection#links in infinite mode.
-     @param {Object} options - {@linkPageableCollection#fetch} options or
-     [reset](http://backbonejs.org/#Collection-reset) options for client mode
-     when `options.fetch` is `false`.
-     @param {boolean} options.fetch = false - If true, force a
-     {@linkPageableCollection#fetch} in client mode.
-
-     @throws {TypeError} If `index` is not a finite integer under server or
-     client mode, or does not yield a URL fromPageableCollection#links under
-     infinite mode.
-
-     @throws {RangeError} If `index` is out of bounds.
-
-     @chainable
-     @return {XMLHttpRequest|PageableCollection} The XMLHttpRequest
-     from fetch or this.
-  */getPage:function getPage(index,options){var mode=this.mode,fullCollection=this.fullCollection;options=options||{fetch:false};var state=this.state,firstPage=state.firstPage,currentPage=state.currentPage,lastPage=state.lastPage,pageSize=state.pageSize,pageNum=index;switch(index){case"first":pageNum=firstPage;break;case"prev":pageNum=currentPage-1;break;case"next":pageNum=currentPage+1;break;case"last":pageNum=lastPage;break;default:pageNum=finiteInt(index,"index");}this.state=this._checkState(_extend({},state,{currentPage:pageNum}));if(!options.silent)this.trigger("pageable:state:change",this.state);options.from=currentPage,options.to=pageNum;var pageStart=(firstPage===0?pageNum:pageNum-1)*pageSize,pageModels=fullCollection&&fullCollection.length?fullCollection.models.slice(pageStart,pageStart+pageSize):[];if((mode=="client"||mode=="infinite"&&!_isEmpty(pageModels))&&!options.fetch){this.reset(pageModels,_omit(options,"fetch"));return this;}if(mode=="infinite")options.url=this.links[pageNum];return this.fetch(_omit(options,"fetch"));},/**
-     Fetch the page for the provided item offset in server mode, or reset the
-     current page of this collection to the page for the provided item offset
-     in client mode.
-
-     @param {Object} options {@linkPageableCollection#getPage} options.
-
-     @chainable
-     @return {XMLHttpRequest|PageableCollection} The XMLHttpRequest
-     from fetch or this.
-  */getPageByOffset:function getPageByOffset(offset,options){if(offset<0){throw new RangeError("`offset must be > 0`");}offset=finiteInt(offset);var page=floor(offset/this.state.pageSize);if(this.state.firstPage!==0)page++;if(page>this.state.lastPage)page=this.state.lastPage;return this.getPage(page,options);},/**
-     Overidden to make `getPage` compatible with Zepto.
-
-     @param {string} method
-     @param {Backbone.Model|Backbone.Collection} model
-     @param {Object} options
-
-     @return {XMLHttpRequest}
-  */sync:function sync(method,model,options){var self=this;if(self.mode=="infinite"){var success=options.success,currentPage=self.state.currentPage;options.success=function(resp,status,xhr){var links=self.links,newLinks=self.parseLinks(resp,_extend({xhr:xhr},options));if(newLinks.first)links[self.state.firstPage]=newLinks.first;if(newLinks.prev)links[currentPage-1]=newLinks.prev;if(newLinks.next)links[currentPage+1]=newLinks.next;if(success)success(resp,status,xhr);};}return(BBColProto.sync||Backbone.sync).call(self,method,model,options);},/**
-     Parse pagination links from the server response. Only valid under
-     infinite mode.
-
-     Given a response body and a XMLHttpRequest object, extract pagination
-     links from them for infinite paging.
-
-     This default implementation parses the RFC 5988 `Link` header and extract
-     3 links from it - `first`, `prev`, `next`. Any subclasses overriding this
-     method __must__ return an object hash having only the keys
-     above. However, simply returning a `next` link or an empty hash if there
-     are no more links should be enough for most implementations.
-
-     @param {*} resp The deserialized response body.
-     @param {Object} options
-     @param {XMLHttpRequest} options.xhr - The XMLHttpRequest object for this
-     response.
-     @return {Object}
-  */parseLinks:function parseLinks(resp,options){var links={},linkHeader=options.xhr.getResponseHeader("Link");if(linkHeader){var relations=["first","prev","next"];_each(linkHeader.split(","),function(linkValue){var linkParts=linkValue.split(";"),url=linkParts[0].replace(URL_TRIM_RE,''),params=linkParts.slice(1);_each(params,function(param){var paramParts=param.split("="),key=paramParts[0].replace(PARAM_TRIM_RE,''),value=paramParts[1].replace(PARAM_TRIM_RE,'');if(key=="rel"&&_contains(relations,value))links[value]=url;});});}return links;},/**
-     Parse server response data.
-
-     This default implementation assumes the response data is in one of two
-     structures:
-
-         [
-           {}, // Your new pagination state
-           [{}, ...] // An array of JSON objects
-         ]
-
-     Or,
-
-         [{}] // An array of JSON objects
-
-     The first structure is the preferred form because the pagination states
-     may have been updated on the server side, sending them down again allows
-     this collection to update its states. If the response has a pagination
-     state object, it is checked for errors.
-
-     The second structure is the
-     [Backbone.Collection#parse](http://backbonejs.org/#Collection-parse)
-     default.
-
-     **Note:** this method has been further simplified since 1.1.7. While
-     existingPageableCollection#parse implementations will continue to work,
-     new code is encouraged to overridePageableCollection#parseState
-     andPageableCollection#parseRecords instead.
-
-     @param {Object} resp The deserialized response data from the server.
-     @param {Object} the options for the ajax request
-
-     @return {Array.<Object>} An array of model objects
-  */parse:function parse(resp,options){var newState=this.parseState(resp,_clone(this.queryParams),_clone(this.state),options);if(newState)this.state=this._checkState(_extend({},this.state,newState));return this.parseRecords(resp,options);},/**
-     Parse server response for server pagination state updates. Not applicable
-     under infinite mode.
-
-     This default implementation first checks whether the response has any
-     state object as documented inPageableCollection#parse. If it exists, a
-     state object is returned by mapping the server state keys to this
-     pageable collection instance's query parameter keys using `queryParams`.
-
-     It is __NOT__ neccessary to return a full state object complete with all
-     the mappings defined inPageableCollection#queryParams. Any state object
-     resulted is merged with a copy of the current pageable collection state
-     and checked for sanity before actually updating. Most of the time, simply
-     providing a new `totalRecords` value is enough to trigger a full
-     pagination state recalculation.
-
-         parseState: function (resp, queryParams, state, options) {
-           return {totalRecords: resp.total_entries};
-         }
-
-     If you want to use header fields use:
-
-         parseState: function (resp, queryParams, state, options) {
-             return {totalRecords: options.xhr.getResponseHeader("X-total")};
-         }
-
-     This method __MUST__ return a new state object instead of directly
-     modifying the PageableCollection#state object. The behavior of directly
-     modifying PageableCollection#state is undefined.
-
-     @param {Object} resp - The deserialized response data from the server.
-     @param {Object} queryParams - A copy of PageableCollection#queryParams.
-     @param {Object} state - A copy of PageableCollection#state.
-     @param {Object} options - The options passed through from
-     `parse`. (backbone >= 0.9.10 only)
-
-     @return {Object} A new (partial) state object.
-   */parseState:function parseState(resp,queryParams,state,options){if(resp&&resp.length===2&&_isObject(resp[0])&&_isArray(resp[1])){var newState=_clone(state),serverState=resp[0];_each(_pairs(_omit(queryParams,"directions")),function(kvp){var k=kvp[0],v=kvp[1],serverVal=serverState[v];if(!_isUndefined(serverVal)&&!_$1.isNull(serverVal))newState[k]=serverState[v];});if(serverState.order){newState.order=_invert(queryParams.directions)[serverState.order]*1;}return newState;}},/**
-     Parse server response for an array of model objects.
-
-     This default implementation first checks whether the response has any
-     state object as documented inPageableCollection#parse. If it exists, the
-     array of model objects is assumed to be the second element, otherwise the
-     entire response is returned directly.
-
-     @param {Object} resp - The deserialized response data from the server.
-     @param {Object} options - The options passed through from the
-     `parse`. (backbone >= 0.9.10 only)
-
-     @return {Array.<Object>} An array of model objects
-   */parseRecords:function parseRecords(resp,options){if(resp&&resp.length===2&&_isObject(resp[0])&&_isArray(resp[1])){return resp[1];}return resp;},/**
-     Fetch a page from the server in server mode, or all the pages in client
-     mode. Under infinite mode, the current page is refetched by default and
-     then reset.
-
-     The query string is constructed by translating the current pagination
-     state to your server API query parameter
-     usingPageableCollection#queryParams. The current page will reset after
-     fetch.
-
-     @param {Object} options - Accepts all
-     [Backbone.Collection#fetch](http://backbonejs.org/#Collection-fetch)
-     options.
-
-     @return {XMLHttpRequest}
-  */fetch:function fetch(options){options=options||{};var state=this._checkState(this.state),mode=this.mode;if(mode=="infinite"&&!options.url){options.url=this.links[state.currentPage];}var data=options.data||{},url=options.url||this.url||"";// dedup query params
-if(_isFunction(url))url=url.call(this);var qsi=url.indexOf('?');if(qsi!=-1){_extend(data,queryStringToParams(url.slice(qsi+1)));url=url.slice(0,qsi);}options.url=url;options.data=data;// map params except directions
-var queryParams=this.mode=="client"?_pick(this.queryParams,"sortKey","order"):_omit(_pick(this.queryParams,_keys(PageableProto.queryParams)),"directions"),thisCopy=_$1.clone(this);_$1.each(queryParams,function(v,k){v=_isFunction(v)?v.call(thisCopy):v;if(state[k]!=null&&v!=null&&_$1.isUndefined(data[v])){data[v]=state[k];}},this);// fix up sorting parameters
-var i;if(state.sortKey&&state.order){var o=_isFunction(queryParams.order)?queryParams.order.call(thisCopy):queryParams.order;if(!_isArray(state.order)){data[o]=this.queryParams.directions[state.order+""];}else{data[o]=[];for(i=0;i<state.order.length;i+=1){data[o].push(this.queryParams.directions[state.order[i]]);}}}else if(!state.sortKey)delete data[queryParams.order];// map extra query parameters
-var extraKvps=_pairs(_omit(this.queryParams,_keys(PageableProto.queryParams))),kvp,v;for(i=0;i<extraKvps.length;i++){kvp=extraKvps[i];v=kvp[1];v=_isFunction(v)?v.call(thisCopy):v;if(v!=null)data[kvp[0]]=v;}if(mode!="server"){var self=this,fullCol=this.fullCollection,success=options.success;options.success=function(col,resp,opts){// make sure the caller's intent is obeyed
-opts=opts||{};if(_isUndefined(options.silent))delete opts.silent;else opts.silent=options.silent;var models=col.models;if(mode=="client")fullCol.reset(models,opts);else{fullCol.add(models,_extend({at:fullCol.length},_extend(opts,{parse:false})));self.trigger("reset",self,opts);}if(success)success(col,resp,opts);};// silent the first reset from backbone
-return BBColProto.fetch.call(this,_extend({},options,{silent:true}));}return BBColProto.fetch.call(this,options);},/**
-     Convenient method for making a `comparator` sorted by a model attribute
-     identified by `sortKey` and ordered by `order`.
-
-     Like a Backbone.Collection, a PageableCollection will maintain the
-     __current page__ in sorted order on the client side if a `comparator` is
-     attached to it. If the collection is in client mode, you can attach a
-     comparator toPageableCollection#fullCollection to have all the pages
-     reflect the global sorting order by specifying an option `full` to
-     `true`. You __must__ call `sort` manually
-     orPageableCollection#fullCollection.sort after calling this method to
-     force a resort.
-
-     While you can use this method to sort the current page in server mode,
-     the sorting order may not reflect the global sorting order due to the
-     additions or removals of the records on the server since the last
-     fetch. If you want the most updated page in a global sorting order, it is
-     recommended that you set PageableCollection#state.sortKey and optionally
-     PageableCollection#state.order, and then callPageableCollection#fetch.
-
-     @protected
-
-     @param {string} sortKey = this.state.sortKey - See `state.sortKey`.
-     @param {number} order = this.state.order - See `state.order`.
-     @param {(function(Backbone.Model, string): Object) | string} sortValue -
-     See PageableCollection#setSorting.
-
-     See [Backbone.Collection.comparator](http://backbonejs.org/#Collection-comparator).
-  */_makeComparator:function _makeComparator(sortKey,order,sortValue){var state=this.state;sortKey=sortKey||state.sortKey;order=order||state.order;if(!sortKey||!order)return;if(!sortValue)sortValue=function sortValue(model,attr){return model.get(attr);};return function(left,right){var l=sortValue(left,sortKey),r=sortValue(right,sortKey),t;if(order===1)t=l,l=r,r=t;if(l===r)return 0;else if(l<r)return-1;return 1;};},/**
-     Adjusts the sorting for this pageable collection.
-
-     Given a `sortKey` and an `order`, sets `state.sortKey` and
-     `state.order`. A comparator can be applied on the client side to sort in
-     the order defined if `options.side` is `"client"`. By default the
-     comparator is applied to thePageableCollection#fullCollection. Set
-     `options.full` to `false` to apply a comparator to the current page under
-     any mode. Setting `sortKey` to `null` removes the comparator from both
-     the current page and the full collection.
-
-     If a `sortValue` function is given, it will be passed the `(model,
-     sortKey)` arguments and is used to extract a value from the model during
-     comparison sorts. If `sortValue` is not given, `model.get(sortKey)` is
-     used for sorting.
-
-     @chainable
-
-     @param {string} sortKey - See `state.sortKey`.
-     @param {number} order=this.state.order - See `state.order`.
-     @param {Object} options
-     @param {string} options.side - By default, `"client"` if `mode` is
-     `"client"`, `"server"` otherwise.
-     @param {boolean} options.full = true
-     @param {(function(Backbone.Model, string): Object) | string} options.sortValue
-  */setSorting:function setSorting(sortKey,order,options){var state=this.state;state.sortKey=sortKey;state.order=order=order||state.order;var fullCollection=this.fullCollection,delComp=false,delFullComp=false;if(!sortKey)delComp=delFullComp=true;var mode=this.mode;options=_extend({side:mode=="client"?mode:"server",full:true},options);var comparator=this._makeComparator(sortKey,order,options.sortValue),full=options.full,side=options.side;if(side=="client"){if(full){if(fullCollection)fullCollection.comparator=comparator;delComp=true;}else{this.comparator=comparator;delFullComp=true;}}else if(side=="server"&&!full){this.comparator=comparator;}if(delComp)this.comparator=null;if(delFullComp&&fullCollection)fullCollection.comparator=null;return this;}}); var PageableProto=PageableCollection.prototype;/**
- * State change event. Fired when PageableCollection#state gets updated
- *
- * @event pageable:state:change
- * @type {object} The PageableCollection#state object of this
- * PageableCollection instance
- *//**
-   Drop-in replacement for Backbone.Collection. Supports server-side and
-   client-side pagination and sorting. Client-side mode also support fully
-   multi-directional synchronization of changes between pages.
-
-   @class PageableCollection
-   @extends Backbone.Collection
-*/if(Backbone.PageableCollection!==undefined){var oldPageableCollection=Backbone.PageableCollection;/**
-     __BROWSER ONLY__
-     If you already have an object named `PageableCollection` attached to the
-     `Backbone` module, you can use this to return a local reference to this
-     PageableCollection class and reset the name PageableCollection to its
-     previous definition.
-         // The left hand side gives you a reference to this
-         // PageableCollection implementation, the right hand side
-         // resets PageableCollection to your other PageableCollection.
-         var PageableCollection = PageableCollection.noConflict();
-     @static
-     @return {PageableCollection}
-  */Backbone.PageableCollection.noConflict=function(){Backbone.PageableCollection=oldPageableCollection;return PageableCollection;};}
-
-Backbone.PageableCollection=PageableCollection;function lpad(str,length,padstr){var paddingLen=length-(str+'').length;paddingLen=paddingLen<0?0:paddingLen;var padding='';for(var i=0;i<paddingLen;i++){padding=padding+padstr;}return padding+str;}var Backgrid$2={VERSION:'0.3.7-es6',Extension:{},resolveNameToClass:function resolveNameToClass(name,suffix){if(_.isString(name)){var key=_.map(name.split('-'),function(e){return e.slice(0,1).toUpperCase()+e.slice(1);}).join('')+suffix,klass=Backgrid$2[key]||Backgrid$2.Extension[key];if(_.isUndefined(klass)){throw new ReferenceError("Class '"+key+"' not found");}return klass;}return name;},callByNeed:function callByNeed(){var value=arguments[0];if(!_.isFunction(value))return value;var context=arguments[1],args=[].slice.call(arguments,2);return value.apply(context,!!(args+'')?args:[]);},$:Backbone.$};_.extend(Backgrid$2,Backbone.Events);
+function lpad(str,length,padstr){var paddingLen=length-(str+'').length;paddingLen=paddingLen<0?0:paddingLen;var padding='';for(var i=0;i<paddingLen;i++){padding=padding+padstr;}return padding+str;}var Backgrid$2={VERSION:'0.3.7-es6',Extension:{},resolveNameToClass:function resolveNameToClass(name,suffix){if(_.isString(name)){var key=_.map(name.split('-'),function(e){return e.slice(0,1).toUpperCase()+e.slice(1);}).join('')+suffix,klass=Backgrid$2[key]||Backgrid$2.Extension[key];if(_.isUndefined(klass)){throw new ReferenceError("Class '"+key+"' not found");}return klass;}return name;},callByNeed:function callByNeed(){var value=arguments[0];if(!_.isFunction(value))return value;var context=arguments[1],args=[].slice.call(arguments,2);return value.apply(context,!!(args+'')?args:[]);},$:Backbone.$};_.extend(Backgrid$2,Backbone.Events);
 
 var Command=function Command(evt){_$1.extend(this,{altKey:!!evt.altKey,"char":evt["char"],charCode:evt.charCode,ctrlKey:!!evt.ctrlKey,key:evt.key,keyCode:evt.keyCode,locale:evt.locale,location:evt.location,metaKey:!!evt.metaKey,repeat:!!evt.repeat,shiftKey:!!evt.shiftKey,which:evt.which});};_$1.extend(Command.prototype,{/**
      Up Arrow
@@ -742,7 +211,7 @@ var SelectFormatter=function SelectFormatter(){};SelectFormatter.prototype=new C
      @param {Backgrid.Column|Object} options.column
 
      @throws {TypeError} If options.column or options.collection is undefined.
-   */initialize:function initialize(options){this.column=options.column;if(!(this.column instanceof Column)){this.column=new Column(this.column);}var column=this.column,collection=this.collection,$el=this.$el;this.listenTo(column,"change:editable change:sortable change:renderable",function(column){var changed=column.changedAttributes();for(var key in changed){if(changed.hasOwnProperty(key)){$el.toggleClass(key,changed[key]);}}});this.listenTo(column,"change:direction",this.setCellDirection);this.listenTo(column,"change:name change:label",this.render);if(Backgrid.callByNeed(column.editable(),column,collection))$el.addClass("editable");if(Backgrid.callByNeed(column.sortable(),column,collection))$el.addClass("sortable");if(Backgrid.callByNeed(column.renderable(),column,collection))$el.addClass("renderable");this.listenTo(collection.fullCollection||collection,"backgrid:sorted",this.removeCellDirection);},/**
+   */initialize:function initialize(options){this.column=options.column;if(!(this.column instanceof Column)){this.column=new Column(this.column);}var column=this.column,collection=this.collection,$el=this.$el;this.listenTo(column,"change:editable change:sortable change:renderable",function(column){var changed=column.changedAttributes();for(var key in changed){if(changed.hasOwnProperty(key)){$el.toggleClass(key,changed[key]);}}});this.listenTo(column,"change:direction",this.setCellDirection);this.listenTo(column,"change:name change:label",this.render);if(Backgrid$2.callByNeed(column.editable(),column,collection))$el.addClass("editable");if(Backgrid$2.callByNeed(column.sortable(),column,collection))$el.addClass("sortable");if(Backgrid$2.callByNeed(column.renderable(),column,collection))$el.addClass("renderable");this.listenTo(collection.fullCollection||collection,"backgrid:sorted",this.removeCellDirection);},/**
      Event handler for the collection's `backgrid:sorted` event. Removes
      all the CSS direction classes.
    */removeCellDirection:function removeCellDirection(){this.$el.removeClass("ascending").removeClass("descending");this.column.set("direction",null);},/**
@@ -754,10 +223,10 @@ var SelectFormatter=function SelectFormatter(){};SelectFormatter.prototype=new C
      Event handler for the `click` event on the cell's anchor. If the column is
      sortable, clicking on the anchor will cycle through 3 sorting orderings -
      `ascending`, `descending`, and default.
-   */onClick:function onClick(e){e.preventDefault();var column=this.column,collection=this.collection,event="backgrid:sort";function cycleSort(header,col){if(column.get("direction")==="ascending")collection.trigger(event,col,"descending");else if(column.get("direction")==="descending")collection.trigger(event,col,null);else collection.trigger(event,col,"ascending");}function toggleSort(header,col){if(column.get("direction")==="ascending")collection.trigger(event,col,"descending");else collection.trigger(event,col,"ascending");}var sortable=Backgrid.callByNeed(column.sortable(),column,this.collection);if(sortable){var sortType=column.get("sortType");if(sortType==="toggle")toggleSort(this,column);else cycleSort(this,column);}},/**
+   */onClick:function onClick(e){e.preventDefault();var column=this.column,collection=this.collection,event="backgrid:sort";function cycleSort(header,col){if(column.get("direction")==="ascending")collection.trigger(event,col,"descending");else if(column.get("direction")==="descending")collection.trigger(event,col,null);else collection.trigger(event,col,"ascending");}function toggleSort(header,col){if(column.get("direction")==="ascending")collection.trigger(event,col,"descending");else collection.trigger(event,col,"ascending");}var sortable=Backgrid$2.callByNeed(column.sortable(),column,this.collection);if(sortable){var sortType=column.get("sortType");if(sortType==="toggle")toggleSort(this,column);else cycleSort(this,column);}},/**
      Renders a header cell with a sorter, a label, and a class name for this
      column.
-   */render:function render(){this.$el.empty();var column=this.column,sortable=Backgrid.callByNeed(column.sortable(),column,this.collection),label;if(sortable){label=$$1("<button>").text(column.get("label")).append("<span class='sort-caret' aria-hidden='true'></span>");}else{label=document.createTextNode(column.get("label"));}this.$el.append(label);this.$el.addClass(column.get("name"));this.$el.addClass(column.get("direction"));this.delegateEvents();return this;}});
+   */render:function render(){this.$el.empty();var column=this.column,sortable=Backgrid$2.callByNeed(column.sortable(),column,this.collection),label;if(sortable){label=$$1("<button>").text(column.get("label")).append("<span class='sort-caret' aria-hidden='true'></span>");}else{label=document.createTextNode(column.get("label"));}this.$el.append(label);this.$el.addClass(column.get("name"));this.$el.addClass(column.get("direction"));this.delegateEvents();return this;}});
 
 /**
    A Column is a placeholder for column metadata.
@@ -1424,4 +893,267 @@ this.body=options.body||this.body;this.body=new this.body(filteredOptions);this.
   Licensed under the MIT license.
 */Backgrid$2.Command=Command;Backgrid$2.CellFormatter=CellFormatter;Backgrid$2.NumberFormatter=NumberFormatter;Backgrid$2.PercentFormatter=PercentFormatter;Backgrid$2.DatetimeFormatter=DatetimeFormatter;Backgrid$2.StringFormatter=StringFormatter;Backgrid$2.EmailFormatter=EmailFormatter;Backgrid$2.SelectFormatter=SelectFormatter;Backgrid$2.CellEditor=CellEditor;Backgrid$2.InputCellEditor=InputCellEditor;Backgrid$2.BooleanCellEditor=BooleanCellEditor;Backgrid$2.SelectCellEditor=SelectCellEditor;Backgrid$2.Cell=Cell;Backgrid$2.StringCell=StringCell;Backgrid$2.UriCell=UriCell;Backgrid$2.EmailCell=EmailCell;Backgrid$2.NumberCell=NumberCell;Backgrid$2.IntegerCell=IntegerCell;Backgrid$2.PercentCell=PercentCell;Backgrid$2.DatetimeCell=DatetimeCell;Backgrid$2.DateCell=DateCell;Backgrid$2.TimeCell=TimeCell;Backgrid$2.BooleanCell=BooleanCell;Backgrid$2.SelectCell=SelectCell;Backgrid$2.HeaderCell=HeaderCell;Backgrid$2.Column=Column;Backgrid$2.Columns=Columns;Backgrid$2.Row=Row;Backgrid$2.EmptyRow=EmptyRow;Backgrid$2.HeaderRow=HeaderRow;Backgrid$2.Header=Header;Backgrid$2.Body=Body;Backgrid$2.Footer=Footer;Backgrid$2.Grid=Grid;
 
-export { Backbone, Backgrid$2 as Backgrid };export default Backgrid$2;
+/*
+ backgrid-sizeable-columns
+ https://github.com/WRidder/backgrid-sizeable-columns
+
+ Copyright (c) 2014 Wilbert van de Ridder
+ Licensed under the MIT @license.
+ */Backgrid$2.Extension.SizeAbleColumns=Backbone.View.extend({/** @property */tagName:"colgroup",/**
+   * Initializer
+   * @param options
+   */initialize:function initialize(options){this.grid=options.grid;// Attach event listeners once on render
+this.listenTo(this.grid.header,"backgrid:header:rendered",this.render);this.listenTo(this.grid.columns,"width:auto",this.setWidthAuto);this.listenTo(this.grid.columns,"width:fixed",this.setWidthFixed);this.listenTo(this.grid,"backgrid:refresh",this.setColToActualWidth);this.listenTo(this.grid.collection,"add remove reset",this.setColToActualWidth);},/**
+   * Adds sizeable columns using <col> elements in a <colgroup>
+   * @returns {Backgrid.Extension.SizeAbleColumns}
+   */render:function render(){var view=this;view.$el.empty();view.grid.columns.each(function(col){if(typeof col.get("renderable")=="undefined"||col.get("renderable")){var $colEl=$$1("<col>").appendTo(view.$el).attr("data-column-cid",col.cid),colWidth=col.get("width"),colMinWidth=col.get("minWidth"),colMaxWidth=col.get("maxWidth");if(colWidth&&colWidth!="*"){if(colMinWidth&&colWidth<colMinWidth){colWidth=colMinWidth;}if(colMaxWidth&&colWidth>colMaxWidth){colWidth=colMaxWidth;}$colEl.width(colWidth);}}});// Add data attribute to column cells
+if(view.grid.header.headerRows){_$1.each(view.grid.header.headerRows,function(row){_$1.each(row.cells,function(cell){cell.$el.attr("data-column-cid",cell.column.cid);});});}else{_$1.each(view.grid.header.row.cells,function(cell){cell.$el.attr("data-column-cid",cell.column.cid);});}// Trigger event
+view.grid.collection.trigger("backgrid:colgroup:changed");return this;},/**
+   * Gets a <col> element belonging to given model
+   * @param colModel Backgrid.Column
+   * @returns {*|JQuery|any|jQuery}
+   * @private
+   */getColumnElement:function getColumnElement(colModel){return this.$el.find('col[data-column-cid="'+colModel.cid+'"]');},/**
+   * Get the column width of given model
+   * @param colModel Backgrid.Column
+   * @returns {Integer}
+   * @private
+   */getHeaderElementWidth:function getHeaderElementWidth(colModel){return this.grid.header.$el.find("th[data-column-cid='"+colModel.cid+"']").outerWidth();},/**
+   * Sets a width of the given column to "*" (auto)
+   * @param colModel Backgrid.Column
+   * @private
+   */setWidthAuto:function setWidthAuto(colModel){// Get column element
+var $colElement=this.getColumnElement(colModel);// Save width
+colModel.set("width","*");// Set column width to auto
+$colElement.css("width","");view.grid.collection.trigger("backgrid:colgroup:updated");},/**
+   * Sets a width of the given column to a fixed width defined in the model.
+   * @param colModel Backgrid.Column
+   * @private
+   */setWidthFixed:function setWidthFixed(colModel){// Get column element
+var $colElement=this.getColumnElement(colModel),width=this.getHeaderElementWidth(colModel);// Get width of header element
+// Set column width to the original width
+$colElement.css("width",width);// Save width
+colModel.set("width",width);view.grid.collection.trigger("backgrid:colgroup:updated");},/**
+   * Updates the view's <col> elements to current width
+   * @private
+   */setColToActualWidth:function setColToActualWidth(){var view=this,changed=false;_$1.each(view.grid.header.row.cells,function(cell){var $colEl=view.getColumnElement(cell.column);if(cell.column.get("width")!=="*"){changed=changed||$colEl.width()==cell.$el.outerWidth();$colEl.width(cell.$el.outerWidth());}});if(changed){view.grid.collection.trigger("backgrid:colgroup:updated");}}});// Makes column resizable; requires Backgrid.Extension.sizeAbleColumns
+Backgrid$2.Extension.SizeAbleColumnsHandlers=Backbone.View.extend({/**
+   * Initializer
+   * @param options
+   */initialize:function initialize(options){this.sizeAbleColumns=options.sizeAbleColumns;this.grid=this.sizeAbleColumns.grid;this.columns=this.grid.columns;this.header=this.grid.header;this.saveColumnWidth=options.saveColumnWidth;this.setHeaderElements();this.attachEvents();},/**
+   * Adds handlers to resize the columns
+   * @returns {Backgrid.Extension.SizeAbleColumnsHandlers}
+   */render:function render(){var view=this;view.$el.empty();// For now, loop tds in first row
+_$1.each(view.headerElements,function(columnEl,index){// Get matching col element
+var $column=$$1(columnEl),columnModelCid=$column.data("column-cid"),$col=view.sizeAbleColumns.$el.find("col[data-column-cid="+columnModelCid+"]"),columnModel=view.columns.get({cid:columnModelCid});if(columnModel&&columnModel.get("resizeable")){// Create helper elements
+var $resizeHandler=$$1("<div></div>").addClass("resizeHandler").attr("data-column-index",index).appendTo(view.$el),$resizeHandlerHelper=$$1("<div></div>").hide().addClass("grid-draggable-cursor").appendTo($resizeHandler);// Make draggable
+$resizeHandler.on("mousedown",function(e){view._stopEvent(e);var startX=Math.round($resizeHandler.offset().left),$doc=$$1(document),handlerNonDragSize=$resizeHandler.outerWidth();// Set class
+$resizeHandler.addClass("grid-draggable");$resizeHandlerHelper.show();// Follow the mouse
+var mouseMoveHandler=function mouseMoveHandler(evt){view._stopEvent(evt);// Check for constraints
+var minWidth=columnModel.get("minWidth");if(!minWidth||minWidth<20){minWidth=20;}var maxWidth=columnModel.get("maxWidth"),newLeftPos=evt.pageX,currentWidth=columnModel.get("width"),newWidth=currentWidth+(newLeftPos-startX)-handlerNonDragSize/2;if(minWidth&&newWidth<=minWidth){newLeftPos=startX-(currentWidth-minWidth)+handlerNonDragSize/2;}if(maxWidth&&newWidth>=maxWidth){newLeftPos=startX+maxWidth-currentWidth+handlerNonDragSize/2;}// Apply mouse change to handler
+$resizeHandler.offset({left:newLeftPos});};$doc.on("mousemove",mouseMoveHandler);// Add handler to listen for mouseup
+var mouseUpHandler=function mouseUpHandler(evt){// Cleanup
+view._stopEvent(evt);$resizeHandler.removeClass("grid-draggable");$resizeHandlerHelper.hide();$doc.off("mouseup",mouseUpHandler);$doc.off("mousemove",mouseMoveHandler);// Adjust column size
+var stopX=Math.round($resizeHandler.offset().left),offset=startX-stopX,oldWidth=$column.outerWidth(),newWidth=oldWidth-offset;$col.width(newWidth);// Get actual width
+var finalWidth=$column.outerWidth();$col.width(finalWidth);// Save width and trigger events
+if(finalWidth!=oldWidth){if(view.saveColumnWidth){// Save updated width
+columnModel.set("width",finalWidth,{silent:true});}// Trigger event
+columnModel.trigger("resize",columnModel,finalWidth,oldWidth);// Check if we have an autosize column, if so, trigger resize on it as well
+var autoWidthColumn=view.columns.findWhere({width:"*"});if(autoWidthColumn){autoWidthColumn.trigger("resize",autoWidthColumn);}}view.updateHandlerPosition();};$doc.on("mouseup",mouseUpHandler);});}});// Position drag handlers
+view.updateHandlerPosition();return this;},/**
+   * Helper function to prevent event propagation
+   * @param e {Event}
+   * @private
+   */_stopEvent:function _stopEvent(e){if(e.stopPropagation){e.stopPropagation();}if(e.preventDefault){e.preventDefault();}e.cancelBubble=true;e.returnValue=false;},/**
+   * Add listeners
+   * @private
+   */attachEvents:function attachEvents(){var view=this;view.listenTo(view.columns,"change:resizeable",view.render);view.listenTo(view.columns,"resize width:auto width:fixed add remove",view.checkSpacerColumn);view.listenTo(view.grid.collection,"backgrid:colgroup:updated",view.updateHandlerPosition);view.listenTo(view.grid.collection,"backgrid:colgroup:changed",function(){// Wait for callstack to be cleared
+_$1.defer(function(){view.setHeaderElements();view.render();});});var resizeEvtHandler=_$1.debounce(_$1.bind(view.updateHandlerPosition,view),250);view.listenTo(view._asEvents(window),"resize",resizeEvtHandler);},/**
+   * Checks whether a spacer column is nessecary. This is the case when widths are set on all columns and it's smaller
+   * that the grid element width.
+   * @private
+   */checkSpacerColumn:function checkSpacerColumn(){var view=this,spacerColumn=_$1.first(view.columns.where({name:"__spacerColumn"})),autoColumns=view.columns.filter(function(col){return col.get("width")=="*"&&col.get("name")!="__spacerColumn";});// Check if there is a column with auto width, if so, no need to do anything
+if(_$1.isEmpty(autoColumns)){var totalWidth=view.columns.reduce(function(memo,num){var colWidth=num.get("width")=="*"?0:num.get("width");return memo+colWidth;},0),gridWidth=view.grid.$el.width();if(gridWidth>totalWidth){// The grid is larger than the cumulative column width, we need a spacer column
+if(!spacerColumn){// Create new column model
+view.columns.add(view.getSpacerColumn());}}else{// Cumulative column width exceeds grid width, no need for a spacerColumn.
+if(spacerColumn){view.columns.remove(spacerColumn);}}}else if(spacerColumn){view.columns.remove(spacerColumn);}},/**
+   * Returns a spacer column definition
+   * @returns Object
+   * @private
+   */getSpacerColumn:function getSpacerColumn(){return Backgrid$2.Extension.SizeAbleColumns.spacerColumnDefinition;},/**
+   * Updates the position of the handlers
+   * @private
+   */updateHandlerPosition:function updateHandlerPosition(){var view=this;_$1.each(view.headerElements,function(columnEl,index){var $column=$$1(columnEl);// Get handler for current column and update position
+view.$el.children().filter("[data-column-index='"+index+"']").css("left",$column.position().left+$column.outerWidth());});},/**
+   * Find the current header elements and stores them
+   */setHeaderElements:function setHeaderElements(){var self=this,rows=self.grid.header.headerRows||[self.grid.header.row];self.headerCells=[];// Loop all rows
+_$1.each(rows,function(row){// Loop cells of row
+_$1.each(row.cells,function(cell){var columnModel=self.columns.get({cid:cell.column.cid});if(!_$1.isEmpty(columnModel)){self.headerCells.push({$el:cell.$el,el:cell.el,column:columnModel});}});});// Sort cells
+var headerCells=_$1.sortBy(self.headerCells,function(cell){return self.columns.indexOf(cell.column);});// Filter cells
+self.headerCells=_$1.filter(headerCells,function(cell){return cell.column.get("renderable")===true||typeof cell.column.get("renderable")==="undefined";});self.headerElements=_$1.map(self.headerCells,function(cell){return cell.el;});},/**
+   * Use Backbone Events listenTo/stopListening with any DOM element
+   *
+   * @param {DOM Element}
+   * @return {Backbone Events style object}
+   **/_asEvents:function _asEvents(el){var args;return{on:function on(event,handler){if(args)throw new Error("this is one off wrapper");el.addEventListener(event,handler,false);args=[event,handler];},off:function off(){el.removeEventListener.apply(el,args);}};}});/**
+ * Sample definition for the spacer column
+ */Backgrid$2.Extension.SizeAbleColumns.spacerColumnDefinition={name:"__spacerColumn",label:"",editable:false,cell:Backgrid$2.StringCell,width:"*",nesting:[],resizeable:false,sortable:false,orderable:false,displayOrder:9999};
+
+/*
+ backgrid-paginator
+ http://github.com/wyuenho/backgrid-paginator
+
+ Copyright (c) 2013 Jimmy Yuen Ho Wong and contributors
+ Licensed under the MIT @license.
+ */var PageHandle=Backgrid$2.Extension.PageHandle=Backbone.View.extend({/** @property */tagName:"li",/** @property */events:{"click button":"changePage"},/**
+     @property {string|function(Object.<string, string>): string} title
+     The title to use for the `title` attribute of the generated page handle
+     button elements. It can be a string or a function that takes a `data`
+     parameter, which contains a mandatory `label` key which provides the
+     label value to be displayed.
+     */title:function title(data){return'Page '+data.label;},/**
+     @property {boolean} isRewind Whether this handle represents a rewind
+     control
+     */isRewind:false,/**
+     @property {boolean} isBack Whether this handle represents a back
+     control
+     */isBack:false,/**
+     @property {boolean} isForward Whether this handle represents a forward
+     control
+     */isForward:false,/**
+     @property {boolean} isFastForward Whether this handle represents a fast
+     forward control
+     */isFastForward:false,/**
+     Initializer.
+
+     @param {Object} options
+     @param {Backbone.Collection} options.collection
+     @param {number} pageIndex 0-based index of the page number this handle
+     handles. This parameter will be normalized to the base the underlying
+     PageableCollection uses.
+     @param {string} [options.label] If provided it is used to render the
+     button text, otherwise the normalized pageIndex will be used
+     instead. Required if any of the `is*` flags is set to `true`.
+     @param {string} [options.title]
+     @param {boolean} [options.isRewind=false]
+     @param {boolean} [options.isBack=false]
+     @param {boolean} [options.isForward=false]
+     @param {boolean} [options.isFastForward=false]
+     */initialize:function initialize(options){var collection=this.collection,state=collection.state,currentPage=state.currentPage,firstPage=state.firstPage,lastPage=state.lastPage;_$1.extend(this,_$1.pick(options,["isRewind","isBack","isForward","isFastForward"]));var pageIndex;if(this.isRewind)pageIndex=firstPage;else if(this.isBack)pageIndex=Math.max(firstPage,currentPage-1);else if(this.isForward)pageIndex=Math.min(lastPage,currentPage+1);else if(this.isFastForward)pageIndex=lastPage;else{pageIndex=+options.pageIndex;pageIndex=firstPage?pageIndex+1:pageIndex;}this.pageIndex=pageIndex;this.label=(options.label||(firstPage?pageIndex:pageIndex+1))+'';var title=options.title||this.title;this.title=_$1.isFunction(title)?title({label:this.label}):title;},/**
+     Renders a clickable button element under a list item.
+     */render:function render(){this.$el.empty();var button=document.createElement("button");button.type="button";if(this.title)button.title=this.title;button.innerHTML=this.label;this.el.appendChild(button);var collection=this.collection,state=collection.state,currentPage=state.currentPage,pageIndex=this.pageIndex;if(this.isRewind&&currentPage==state.firstPage||this.isBack&&!collection.hasPreviousPage()||this.isForward&&!collection.hasNextPage()||this.isFastForward&&(currentPage==state.lastPage||state.totalPages<1)){this.$el.addClass("disabled");}else if(!(this.isRewind||this.isBack||this.isForward||this.isFastForward)&&state.currentPage==pageIndex){this.$el.addClass("active");}this.delegateEvents();return this;},/**
+     jQuery click event handler. Goes to the page this PageHandle instance
+     represents. No-op if this page handle is currently active or disabled.
+     */changePage:function changePage(e){e.preventDefault();var $el=this.$el,col=this.collection;if(!$el.hasClass("active")&&!$el.hasClass("disabled")){if(this.isRewind)col.getFirstPage();else if(this.isBack)col.getPreviousPage();else if(this.isForward)col.getNextPage();else if(this.isFastForward)col.getLastPage();else col.getPage(this.pageIndex,{reset:true});}return this;}});
+ var Paginator=Backgrid$2.Extension.Paginator=Backbone.View.extend({/** @property */className:"backgrid-paginator",/** @property */windowSize:10,/**
+     @property {number} slideScale the number used by #slideHowMuch to scale
+     `windowSize` to yield the number of pages to slide. For example, the
+     default windowSize(10) * slideScale(0.5) yields 5, which means the window
+     will slide forward 5 pages as soon as you've reached page 6. The smaller
+     the scale factor the less pages to slide, and vice versa.
+
+     Also See:
+
+     - #slideMaybe
+     - #slideHowMuch
+     */slideScale:0.5,/**
+     @property {Object.<string, Object.<string, string>>} controls You can
+     disable specific control handles by setting the keys in question to
+     null. The defaults will be merged with your controls object, with your
+     changes taking precedent.
+     */controls:{rewind:{label:"《",title:"First"},back:{label:"〈",title:"Previous"},forward:{label:"〉",title:"Next"},fastForward:{label:"》",title:"Last"}},/** @property */renderIndexedPageHandles:true,/**
+     @property renderMultiplePagesOnly. Determines if the paginator
+     should show in cases where the collection has more than one page.
+     Default is false for backwards compatibility.
+     */renderMultiplePagesOnly:false,/**
+     @property {Backgrid.Extension.PageHandle} pageHandle. The PageHandle
+     class to use for rendering individual handles
+     */pageHandle:PageHandle,/** @property */goBackFirstOnSort:true,/**
+     Initializer.
+
+     @param {Object} options
+     @param {Backbone.Collection} options.collection
+     @param {boolean} [options.controls]
+     @param {boolean} [options.pageHandle=Backgrid.Extension.PageHandle]
+     @param {boolean} [options.goBackFirstOnSort=true]
+     @param {boolean} [options.renderMultiplePagesOnly=false]
+     */initialize:function initialize(options){var self=this;self.controls=_$1.defaults(options.controls||{},self.controls,Paginator.prototype.controls);_$1.extend(self,_$1.pick(options||{},"windowSize","pageHandle","slideScale","goBackFirstOnSort","renderIndexedPageHandles","renderMultiplePagesOnly"));var col=self.collection;self.listenTo(col,"add",self.render);self.listenTo(col,"remove",self.render);self.listenTo(col,"reset",self.render);self.listenTo(col,"backgrid:sorted",function(){if(self.goBackFirstOnSort&&col.state.currentPage!==col.state.firstPage)col.getFirstPage({reset:true});});},/**
+     Decides whether the window should slide. This method should return 1 if
+     sliding should occur and 0 otherwise. The default is sliding should occur
+     if half of the pages in a window has been reached.
+
+     __Note__: All the parameters have been normalized to be 0-based.
+
+     @param {number} firstPage
+     @param {number} lastPage
+     @param {number} currentPage
+     @param {number} windowSize
+     @param {number} slideScale
+
+     @return {0|1}
+     */slideMaybe:function slideMaybe(firstPage,lastPage,currentPage,windowSize,slideScale){return Math.round(currentPage%windowSize/windowSize);},/**
+     Decides how many pages to slide when sliding should occur. The default
+     simply scales the `windowSize` to arrive at a fraction of the `windowSize`
+     to increment.
+
+     __Note__: All the parameters have been normalized to be 0-based.
+
+     @param {number} firstPage
+     @param {number} lastPage
+     @param {number} currentPage
+     @param {number} windowSize
+     @param {number} slideScale
+
+     @return {number}
+     */slideThisMuch:function slideThisMuch(firstPage,lastPage,currentPage,windowSize,slideScale){return~~(windowSize*slideScale);},_calculateWindow:function _calculateWindow(){var collection=this.collection,state=collection.state,firstPage=state.firstPage,lastPage=+state.lastPage;// convert all indices to 0-based here
+lastPage=Math.max(0,firstPage?lastPage-1:lastPage);var currentPage=Math.max(state.currentPage,state.firstPage);currentPage=firstPage?currentPage-1:currentPage;var windowSize=this.windowSize,slideScale=this.slideScale,windowStart=Math.floor(currentPage/windowSize)*windowSize;if(currentPage<=lastPage-this.slideThisMuch()){windowStart+=this.slideMaybe(firstPage,lastPage,currentPage,windowSize,slideScale)*this.slideThisMuch(firstPage,lastPage,currentPage,windowSize,slideScale);}var windowEnd=Math.min(lastPage+1,windowStart+windowSize);return[windowStart,windowEnd];},/**
+     Creates a list of page handle objects for rendering.
+
+     @return {Array.<Object>} an array of page handle objects hashes
+     */makeHandles:function makeHandles(){var handles=[],collection=this.collection,window=this._calculateWindow(),winStart=window[0],winEnd=window[1];if(this.renderIndexedPageHandles){for(var i=winStart;i<winEnd;i++){handles.push(new this.pageHandle({collection:collection,pageIndex:i}));}}var controls=this.controls;_$1.each(["back","rewind","forward","fastForward"],function(key){var value=controls[key];if(value){var handleCtorOpts={collection:collection,title:value.title,label:value.label};handleCtorOpts["is"+key.slice(0,1).toUpperCase()+key.slice(1)]=true;var handle=new this.pageHandle(handleCtorOpts);if(key=="rewind"||key=="back")handles.unshift(handle);else handles.push(handle);}},this);return handles;},/**
+     Render the paginator handles inside an unordered list.
+     */render:function render(){this.$el.empty();var totalPages=this.collection.state.totalPages;// Don't render if collection is empty
+if(this.renderMultiplePagesOnly&&totalPages<=1){return this;}if(this.handles){for(var i=0,l=this.handles.length;i<l;i++){this.handles[i].remove();}}var handles=this.handles=this.makeHandles(),ul=document.createElement("ul");for(var i=0;i<handles.length;i++){ul.appendChild(handles[i].render().el);}this.el.appendChild(ul);return this;}});/**
+ Paginator is a Backgrid extension that renders a series of configurable
+ pagination handles. This extension is best used for splitting a large data
+ set across multiple pages. If the number of pages is larger then a
+ threshold, which is set to 10 by default, the page handles are rendered
+ within a sliding window, plus the rewind, back, forward and fast forward
+ control handles. The individual control handles can be turned off.
+
+ @class Backgrid.Extension.Paginator
+ */
+
+_$1.templateSettings={interpolate:/\{\{(.+?)\}\}/g,evaluate:/\{\{(.+?)\}\}/g,escape:/\{\{-(.+?)\}\}/g};var EditableHeaderCell=Backgrid$2.HeaderCell.extend({events:{"click .fontello-filter":"toggleFilterDialog","blur label.editable":"renameColumn","keydown label.editable":"renameColumn","click a":"onClick"},renameColumn:function renameColumn(e){var _this=this,$this=_this.$('label.editable');//console.zdebug($this, $this.text().trim(), globalvars.isValidEvent(e));
+// Esc deshace el cambio
+if(e.keyCode===27){$this.text(_this.column.get('label'));}else if(globalvars.isValidEvent(e)){var newLabel=$this.text().trim();_this.column.set('label',newLabel);}},toggleFilterDialog:function toggleFilterDialog(e){console.warn(e,'Unimplemented toggleFilterDialog, it needs to be overridden');return null;},showFilterinput:function showFilterinput(e){var width=Math.max(this.column.get("width"),this.$el.width());},updateInputFromCriteria:function updateInputFromCriteria(){var _this=this,strCriteria="";if(_this.column.has('filtercriteria')){var filtercriteria=_this.column.get('filtercriteria');if(filtercriteria&&filtercriteria.objCriteria){strCriteria=typeof filtercriteria.objCriteria==='string'?filtercriteria.objCriteria:JSON.stringify(filtercriteria.objCriteria);_this.showFilterinput();}this.$el.data('strCriteria',strCriteria);_this.$el.addClass('active_filter');}else{this.$el.data('strCriteria',null);_this.$el.removeClass('active_filter');}},render:function render(){var _this=this;this.$el.empty();var column=this.column,sortable=Backgrid$2.callByNeed(column.sortable(),column,this.collection),label;if(sortable){label=$$1("<label>").html(column.get("label"));this.$el.append('<span class="sort_container"><a ><b class="sort-caret"></b><i class="fontello-sort"></i></a></span>');}else{label=document.createTextNode(column.get("label"));}this.$el.prepend(label);if(column.get('editable')){this.$el.find('label').addClass('editable').attr('contenteditable',true);}if(column.get('filterable')){this.$el.find('.sort_container').prepend('<i class="fontello-filter"></i>');_this.listenTo(this.column,'change:filtercriteria',function(){console.zdebug('EditableHeaderCell filtercriteria changed');_this.updateInputFromCriteria();});}this.$el.addClass(column.get("name"));this.$el.addClass(column.get("direction"));this.delegateEvents();return this;}});
+
+_$1.templateSettings={interpolate:/\{\{(.+?)\}\}/g,evaluate:/\{\{(.+?)\}\}/g,escape:/\{\{-(.+?)\}\}/g};Backgrid$2.InputCellEditor.prototype._class='Backgrid.InputCellEditor';Backgrid$2.InputCellEditor.prototype.events={"blur":"blurEvent","keydown":"interceptEvent","click":"interceptEvent"};Backgrid$2.InputCellEditor.prototype.initialize=function(options){var _this=this;Backgrid$2.InputCellEditor.__super__.initialize.apply(this,arguments);if(options.placeholder){this.$el.attr("placeholder",options.placeholder);}//console.zdebug('CellEditor initialize', this.model);
+_$1.delay(function(){//console.zdebug('Cleaning Cell Editor');
+_this.$el.closest('td').removeClass('selected');},500);};Backgrid$2.InputCellEditor.prototype.enableField=function(){//console.zdebug('Backgrid.InputCellEditor enableField');
+this.readonly=false;return this;};Backgrid$2.InputCellEditor.prototype.blurEvent=function(e){//console.zdebug('Backgrid.InputCellEditor blurEvent');
+this.saveOrCancel(e);return this;};Backgrid$2.InputCellEditor.prototype.alterEvent=function(e){if(this.readonly===undefined){if(e.type==="click"||e.type==="blur"){this.enableField();}else if(e.type==="keydown"){switch(e.keyCode){case 13:this.enableField();break;case 39:e.keyCode=9;e.shiftKey=false;break;case 37:e.keyCode=9;e.shiftKey=true;break;case 9:case 40:case 38:// flecha arriba y flecha abajo, no altero el evento
+break;default:this.enableField();break;}}}return e;};Backgrid$2.InputCellEditor.prototype.interceptEvent=function(e){var evt;if(this.readonly===undefined){evt=this.alterEvent(e);}else{evt=e;}this.saveOrCancel(evt);};var GeocodableEditor=Backgrid$2.InputCellEditor.extend({_class:'GeocodableEditor',id:'addressEditor',place_found:null,enableField:function enableField(){var _this=this;if(window.google.maps){var gmaps=window.google.maps;}else{console.warn('GeocodableEditor cannot run without google maps in the window scope');return false;}this.readonly=false;this.model.trigger('mute',true);this.place_found=false;var input=_this.$el[0],autocompleteOptions={},country=null;if(this.model.has('country')){country=this.model.get('country');}else if(this.model.has('pais')){country=this.model.get('pais');}if(country!==null){autocompleteOptions.componentRestrictions={country:country};}var autocomplete=new gmaps.places.Autocomplete(input,autocompleteOptions);input.placeholder='Find an address';gmaps.event.addListener(autocomplete,'place_changed',function(){_this.place_found=true;var place=autocomplete.getPlace(),address={};_$1.each(place.address_components,function(component){address[component.types[0]]=component.short_name;});console.info('Place CHANGED',{address:address,place:place});if(place.geometry){_this.model.save({geocodingAddress:place.place_id,latGoogle:place.geometry.location.lat(),lonGoogle:place.geometry.location.lng(),geoStatus:'OK',geoResult:1,pais:address.country,region:address.administrative_area_level_1,ciudad:address.administrative_area_level_2,comuna:address.locality||address.administrative_area_level_3,country:address.country,state:address.administrative_area_level_1,county:address.administrative_area_level_2,city:address.administrative_area_level_3});}return;});return this;},interceptEvent:function interceptEvent(e){var _this=this,evt;if(this.readonly===undefined){evt=this.alterEvent(e);this.saveOrCancel(evt);//console.zdebug('GeocodableEditor interceptEvent', evt, this.readonly);
+}else if(globalvars.isValidEvent(e,true)){this.saveOrCancel(e);_$1.delay(function(){if(_this.place_found===false){_this.model.save();}_this.model.trigger('mute',false);},1000);}}});
+
+_$1.templateSettings={interpolate:/\{\{(.+?)\}\}/g,evaluate:/\{\{(.+?)\}\}/g,escape:/\{\{-(.+?)\}\}/g};Backgrid$2.Extension.ResizableColumns=Backgrid$2.Extension.SizeAbleColumns.extend({className:'resizablecols'});/**
+ * [render description]
+ * @param  {[type]} ) {		this.$el.html(this.template(this.model.attributes));		this.delegateEvents();		return this;	}} [description]
+ * @return {[type]}   [description]
+ */Backgrid$2.DeleteCell=Backgrid$2.Cell.extend({template:_$1.template('<a class="removerow" data-row="{{id}}"><i class="fontello-trash" id="removerow{{id}}" data-row="{{id}}"></i></a>&nbsp;{{id}}'),render:function render(){this.$el.html(this.template(this.model.attributes));this.delegateEvents();return this;}});/**
+ * [initialize description]
+ * @param  {[type]} ) {		Backgrid.StringCell.prototype.initialize.apply(this, arguments);	}} [description]
+ * @return {[type]}   [description]
+ */var GeocodableCell=Backgrid$2.StringCell.extend({_class:'Backgrid.GeocodableCell',className:"geocodable-cell",formatter:Backgrid$2.StringFormatter,editor:GeocodableEditor,initialize:function initialize(){Backgrid$2.StringCell.prototype.initialize.apply(this,arguments);}});Backgrid$2.GeocodableCell=GeocodableCell;/**
+ * [constructor description]
+ * @param  {[type]} ) {		var       _this [description]
+ * @return {[type]}   [description]
+ */var DatasetColumn=Backgrid$2.Column.extend({_class:'Backgrid.DatasetColumn',constructor:function constructor(){var _this=this;//console.zdebug('Constructor DatasetColumn');
+this.on('backgrid:edited',function(){console.zdebug('backgrid:edit DatasetColumn');});this.on('change:filtercriteria',function(){console.zdebug('DatasetColumn filtercriteria changed',_this.get('filtercriteria'));});this.on('change:label',function(){var changedAttrs=_this.changedAttributes();console.zdebug('Label Changed',_this.get('label'),changedAttrs);if(changedAttrs.label&&_this.has('label')&&_this.has('model')){_this.get('model').set('alias',_this.get('label')).save();}});Backgrid$2.Column.apply(this,arguments);},parseCriteria:function parseCriteria(strCriteria){var _this=this,objCriteria,val_operador,val_condition;try{objCriteria=JSON.parse(strCriteria);val_operador=_$1.keys(objCriteria)[0];val_condition=_$1.values(objCriteria)[0];}catch(e){objCriteria=strCriteria;val_operador="";val_condition=strCriteria;}var filtercriteria={val_campo:_this.get('nombre_fisico'),val_operador:val_operador,val_condition:val_condition,objCriteria:objCriteria};console.zdebug(this.get('name'),filtercriteria,objCriteria);_this.set('filtercriteria',filtercriteria);return filtercriteria;}});Backgrid$2.DatasetColumn=DatasetColumn;/**
+ * [constructor description]
+ * @param  {[type]} models   [description]
+ * @param  {Array}  options) {		if        (options.tableModel) {			var theModels [description]
+ * @return {[type]}          [description]
+ */var DatasetColumns=Backgrid$2.Columns.extend({_class:'Backgrid.DatasetColumns',model:Backgrid$2.DatasetColumn,constructor:function constructor(models,options){if(options.tableModel){var theModels=[{name:"id_instagis",label:"ID",editable:false,cell:Backgrid$2.DeleteCell,resizeable:true,minWidth:60,width:80,maxWidth:100,nombre_fisico:"id_instagis"}].concat(options.tableModel.columns.map(function(columna){var columnObj={id:columna.get('id'),name:columna.get('nombre_fisico'),label:columna.get('alias').replace(/_/g,' '),cell:"string",resizeable:true,editable:true,headerCell:EditableHeaderCell,minWidth:110,width:160,maxWidth:250,model:columna,filterable:true,nombre_fisico:columna.get('nombre_fisico')};if(columnObj.name==='direccion'||columnObj.name==='address'){_$1.extend(columnObj,{width:300,minWidth:240,maxWidth:500,cell:Backgrid$2.GeocodableCell});}else if(columnObj.name==='description'||columnObj.name==='descripcion'){_$1.extend(columnObj,{width:400,minWidth:240,maxWidth:600});}return columnObj;})).concat([{name:"lat_google",label:"latitude",editable:false,resizeable:true,cell:Backgrid$2.NumberCell.extend({decimals:6}),minWidth:80,width:80,maxWidth:100,nombre_fisico:"lat_google"},{name:"lon_google",label:"longitude",editable:false,resizeable:true,cell:Backgrid$2.NumberCell.extend({decimals:6}),minWidth:80,width:80,maxWidth:100,nombre_fisico:"lon_google"},{name:"geo_status",label:"geo_status",editable:false,cell:Backgrid$2.StringCell,headerCell:EditableHeaderCell,minWidth:110,width:120,maxWidth:120,filterable:true,resizeable:true,nombre_fisico:"geo_status"},{name:"geo_result",label:"geo_result",editable:false,resizeable:true,cell:Backgrid$2.IntegerCell,minWidth:100,width:100,maxWidth:100,nombre_fisico:"geo_result"}]);Backgrid$2.Columns.apply(this,[theModels]);}}});Backgrid$2.EditableHeaderCell=EditableHeaderCell;Backgrid$2.DatasetColumns=DatasetColumns;Backgrid$2.GeocodableEditor=GeocodableEditor;
+
+export { Backgrid$2 as Backgrid };export default Backgrid$2;

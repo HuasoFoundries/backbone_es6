@@ -6,13 +6,11 @@
  Licensed under the MIT @license.
  */
 import _ from 'underscore';
-import {
-    Backgrid
-} from 'backgrid';
+import Backbone from 'backbone';
 
 import {
-    PageableCollection
-} from './backbone.paginator.js';
+    Backgrid
+} from './core.js';
 
 "use strict";
 

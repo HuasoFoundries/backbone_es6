@@ -1,5 +1,6 @@
+import Backbone from 'backbone';
+
 import {
-	Backbone,
 	Backgrid
 } from './core.js';
 
