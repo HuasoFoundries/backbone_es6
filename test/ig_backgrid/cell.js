@@ -1399,7 +1399,11 @@ describe("A SelectCellEditor", function () {
     var editor_column_name = editor.column.get("name"),
       get_gender = editor.model.get(editor_column_name);
 
-    expect(editor.model.get(editor_column_name)).toBe(null);
+    //console.log('editor_column_name', editor_column_name);
+    var edcm_get = editor.model.get(editor_column_name);
+    //console.log('editor_column_name', editor_column_name, edcm_get);
+
+    expect(edcm_get).toEqual([]);
 
   });
 

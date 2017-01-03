@@ -23,13 +23,35 @@ module.exports = function (grunt) {
 					'test/vendor/object-assign-polyfill.js',
 					'test/vendor/prototype-bind-polyfill.js',
 					'test/vendor/bluebird.js',
-					'test/vendor/jquery.js',
+					'test/vendor/jquery.min.js',
 					'test/vendor/underscore.js',
 					'dist/ig_backbone.bundle.js',
 					'test/ig_backbone/setup/*.js',
 					'test/ig_backbone/*.js'
 				]
 
+			}
+		},
+
+		backbone_modal: {
+
+			// base path that will be used to resolve all patterns (eg. files, exclude)
+			options: {
+
+				// frameworks to use
+				// available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+				frameworks: ['jasmine'],
+
+				// list of files / patterns to load in the browser
+				files: [
+					'test/vendor/object-assign-polyfill.js',
+					'test/vendor/prototype-bind-polyfill.js',
+					'test/vendor/jquery.min.js',
+					'test/vendor/underscore.js',
+					'dist/ig_backbone.bundle.js',
+					'test/backbone_modal/setup/*.js',
+					'test/backbone_modal/*.js'
+				]
 			}
 		},
 
@@ -46,7 +68,7 @@ module.exports = function (grunt) {
 				files: [
 					'test/vendor/object-assign-polyfill.js',
 					'test/vendor/prototype-bind-polyfill.js',
-					'test/vendor/jquery.js',
+					'test/vendor/jquery.min.js',
 					'test/vendor/underscore.js',
 					'dist/ig_backbone.bundle.js',
 					'dist/ig_backgrid.bundle.js',

@@ -4,6 +4,131 @@ import $$1 from 'jquery';
 
 function lpad(str,length,padstr){var paddingLen=length-(str+'').length;paddingLen=paddingLen<0?0:paddingLen;var padding='';for(var i=0;i<paddingLen;i++){padding=padding+padstr;}return padding+str;}var Backgrid$2={VERSION:'0.3.7-es6',Extension:{},resolveNameToClass:function resolveNameToClass(name,suffix){if(_.isString(name)){var key=_.map(name.split('-'),function(e){return e.slice(0,1).toUpperCase()+e.slice(1);}).join('')+suffix,klass=Backgrid$2[key]||Backgrid$2.Extension[key];if(_.isUndefined(klass)){throw new ReferenceError("Class '"+key+"' not found");}return klass;}return name;},callByNeed:function callByNeed(){var value=arguments[0];if(!_.isFunction(value))return value;var context=arguments[1],args=[].slice.call(arguments,2);return value.apply(context,!!(args+'')?args:[]);},$:Backbone.$};_.extend(Backgrid$2,Backbone.Events);
 
+/*
+ backgrid-paginator
+ http://github.com/wyuenho/backgrid-paginator
+
+ Copyright (c) 2013 Jimmy Yuen Ho Wong and contributors
+ Licensed under the MIT @license.
+ */var PageHandle=Backgrid$2.Extension.PageHandle=Backbone.View.extend({/** @property */tagName:"li",/** @property */events:{"click button":"changePage"},/**
+     @property {string|function(Object.<string, string>): string} title
+     The title to use for the `title` attribute of the generated page handle
+     button elements. It can be a string or a function that takes a `data`
+     parameter, which contains a mandatory `label` key which provides the
+     label value to be displayed.
+     */title:function title(data){return'Page '+data.label;},/**
+     @property {boolean} isRewind Whether this handle represents a rewind
+     control
+     */isRewind:false,/**
+     @property {boolean} isBack Whether this handle represents a back
+     control
+     */isBack:false,/**
+     @property {boolean} isForward Whether this handle represents a forward
+     control
+     */isForward:false,/**
+     @property {boolean} isFastForward Whether this handle represents a fast
+     forward control
+     */isFastForward:false,/**
+     Initializer.
+
+     @param {Object} options
+     @param {Backbone.Collection} options.collection
+     @param {number} pageIndex 0-based index of the page number this handle
+     handles. This parameter will be normalized to the base the underlying
+     PageableCollection uses.
+     @param {string} [options.label] If provided it is used to render the
+     button text, otherwise the normalized pageIndex will be used
+     instead. Required if any of the `is*` flags is set to `true`.
+     @param {string} [options.title]
+     @param {boolean} [options.isRewind=false]
+     @param {boolean} [options.isBack=false]
+     @param {boolean} [options.isForward=false]
+     @param {boolean} [options.isFastForward=false]
+     */initialize:function initialize(options){var collection=this.collection,state=collection.state,currentPage=state.currentPage,firstPage=state.firstPage,lastPage=state.lastPage;_$1.extend(this,_$1.pick(options,["isRewind","isBack","isForward","isFastForward"]));var pageIndex;if(this.isRewind)pageIndex=firstPage;else if(this.isBack)pageIndex=Math.max(firstPage,currentPage-1);else if(this.isForward)pageIndex=Math.min(lastPage,currentPage+1);else if(this.isFastForward)pageIndex=lastPage;else{pageIndex=+options.pageIndex;pageIndex=firstPage?pageIndex+1:pageIndex;}this.pageIndex=pageIndex;this.label=(options.label||(firstPage?pageIndex:pageIndex+1))+'';var title=options.title||this.title;this.title=_$1.isFunction(title)?title({label:this.label}):title;},/**
+     Renders a clickable button element under a list item.
+     */render:function render(){this.$el.empty();var button=document.createElement("button");button.type="button";if(this.title)button.title=this.title;button.innerHTML=this.label;this.el.appendChild(button);var collection=this.collection,state=collection.state,currentPage=state.currentPage,pageIndex=this.pageIndex;if(this.isRewind&&currentPage==state.firstPage||this.isBack&&!collection.hasPreviousPage()||this.isForward&&!collection.hasNextPage()||this.isFastForward&&(currentPage==state.lastPage||state.totalPages<1)){this.$el.addClass("disabled");}else if(!(this.isRewind||this.isBack||this.isForward||this.isFastForward)&&state.currentPage==pageIndex){this.$el.addClass("active");}this.delegateEvents();return this;},/**
+     jQuery click event handler. Goes to the page this PageHandle instance
+     represents. No-op if this page handle is currently active or disabled.
+     */changePage:function changePage(e){e.preventDefault();var $el=this.$el,col=this.collection;if(!$el.hasClass("active")&&!$el.hasClass("disabled")){if(this.isRewind)col.getFirstPage();else if(this.isBack)col.getPreviousPage();else if(this.isForward)col.getNextPage();else if(this.isFastForward)col.getLastPage();else col.getPage(this.pageIndex,{reset:true});}return this;}});
+ var Paginator=Backgrid$2.Extension.Paginator=Backbone.View.extend({/** @property */className:"backgrid-paginator",/** @property */windowSize:10,/**
+     @property {number} slideScale the number used by #slideHowMuch to scale
+     `windowSize` to yield the number of pages to slide. For example, the
+     default windowSize(10) * slideScale(0.5) yields 5, which means the window
+     will slide forward 5 pages as soon as you've reached page 6. The smaller
+     the scale factor the less pages to slide, and vice versa.
+
+     Also See:
+
+     - #slideMaybe
+     - #slideHowMuch
+     */slideScale:0.5,/**
+     @property {Object.<string, Object.<string, string>>} controls You can
+     disable specific control handles by setting the keys in question to
+     null. The defaults will be merged with your controls object, with your
+     changes taking precedent.
+     */controls:{rewind:{label:"《",title:"First"},back:{label:"〈",title:"Previous"},forward:{label:"〉",title:"Next"},fastForward:{label:"》",title:"Last"}},/** @property */renderIndexedPageHandles:true,/**
+     @property renderMultiplePagesOnly. Determines if the paginator
+     should show in cases where the collection has more than one page.
+     Default is false for backwards compatibility.
+     */renderMultiplePagesOnly:false,/**
+     @property {Backgrid.Extension.PageHandle} pageHandle. The PageHandle
+     class to use for rendering individual handles
+     */pageHandle:PageHandle,/** @property */goBackFirstOnSort:true,/**
+     Initializer.
+
+     @param {Object} options
+     @param {Backbone.Collection} options.collection
+     @param {boolean} [options.controls]
+     @param {boolean} [options.pageHandle=Backgrid.Extension.PageHandle]
+     @param {boolean} [options.goBackFirstOnSort=true]
+     @param {boolean} [options.renderMultiplePagesOnly=false]
+     */initialize:function initialize(options){var self=this;self.controls=_$1.defaults(options.controls||{},self.controls,Paginator.prototype.controls);_$1.extend(self,_$1.pick(options||{},"windowSize","pageHandle","slideScale","goBackFirstOnSort","renderIndexedPageHandles","renderMultiplePagesOnly"));var col=self.collection;self.listenTo(col,"add",self.render);self.listenTo(col,"remove",self.render);self.listenTo(col,"reset",self.render);self.listenTo(col,"backgrid:sorted",function(){if(self.goBackFirstOnSort&&col.state.currentPage!==col.state.firstPage)col.getFirstPage({reset:true});});},/**
+     Decides whether the window should slide. This method should return 1 if
+     sliding should occur and 0 otherwise. The default is sliding should occur
+     if half of the pages in a window has been reached.
+
+     __Note__: All the parameters have been normalized to be 0-based.
+
+     @param {number} firstPage
+     @param {number} lastPage
+     @param {number} currentPage
+     @param {number} windowSize
+     @param {number} slideScale
+
+     @return {0|1}
+     */slideMaybe:function slideMaybe(firstPage,lastPage,currentPage,windowSize,slideScale){return Math.round(currentPage%windowSize/windowSize);},/**
+     Decides how many pages to slide when sliding should occur. The default
+     simply scales the `windowSize` to arrive at a fraction of the `windowSize`
+     to increment.
+
+     __Note__: All the parameters have been normalized to be 0-based.
+
+     @param {number} firstPage
+     @param {number} lastPage
+     @param {number} currentPage
+     @param {number} windowSize
+     @param {number} slideScale
+
+     @return {number}
+     */slideThisMuch:function slideThisMuch(firstPage,lastPage,currentPage,windowSize,slideScale){return~~(windowSize*slideScale);},_calculateWindow:function _calculateWindow(){var collection=this.collection,state=collection.state,firstPage=state.firstPage,lastPage=+state.lastPage;// convert all indices to 0-based here
+lastPage=Math.max(0,firstPage?lastPage-1:lastPage);var currentPage=Math.max(state.currentPage,state.firstPage);currentPage=firstPage?currentPage-1:currentPage;var windowSize=this.windowSize,slideScale=this.slideScale,windowStart=Math.floor(currentPage/windowSize)*windowSize;if(currentPage<=lastPage-this.slideThisMuch()){windowStart+=this.slideMaybe(firstPage,lastPage,currentPage,windowSize,slideScale)*this.slideThisMuch(firstPage,lastPage,currentPage,windowSize,slideScale);}var windowEnd=Math.min(lastPage+1,windowStart+windowSize);return[windowStart,windowEnd];},/**
+     Creates a list of page handle objects for rendering.
+
+     @return {Array.<Object>} an array of page handle objects hashes
+     */makeHandles:function makeHandles(){var handles=[],collection=this.collection,window=this._calculateWindow(),winStart=window[0],winEnd=window[1];if(this.renderIndexedPageHandles){for(var i=winStart;i<winEnd;i++){handles.push(new this.pageHandle({collection:collection,pageIndex:i}));}}var controls=this.controls;_$1.each(["back","rewind","forward","fastForward"],function(key){var value=controls[key];if(value){var handleCtorOpts={collection:collection,title:value.title,label:value.label};handleCtorOpts["is"+key.slice(0,1).toUpperCase()+key.slice(1)]=true;var handle=new this.pageHandle(handleCtorOpts);if(key=="rewind"||key=="back")handles.unshift(handle);else handles.push(handle);}},this);return handles;},/**
+     Render the paginator handles inside an unordered list.
+     */render:function render(){this.$el.empty();var totalPages=this.collection.state.totalPages;// Don't render if collection is empty
+if(this.renderMultiplePagesOnly&&totalPages<=1){return this;}if(this.handles){for(var i=0,l=this.handles.length;i<l;i++){this.handles[i].remove();}}var handles=this.handles=this.makeHandles(),ul=document.createElement("ul");for(var i=0;i<handles.length;i++){ul.appendChild(handles[i].render().el);}this.el.appendChild(ul);return this;}});/**
+ Paginator is a Backgrid extension that renders a series of configurable
+ pagination handles. This extension is best used for splitting a large data
+ set across multiple pages. If the number of pages is larger then a
+ threshold, which is set to 10 by default, the page handles are rendered
+ within a sliding window, plus the rewind, back, forward and fast forward
+ control handles. The individual control handles can be turned off.
+
+ @class Backgrid.Extension.Paginator
+ */
+
 var Command=function Command(evt){_$1.extend(this,{altKey:!!evt.altKey,"char":evt["char"],charCode:evt.charCode,ctrlKey:!!evt.ctrlKey,key:evt.key,keyCode:evt.keyCode,locale:evt.locale,location:evt.location,metaKey:!!evt.metaKey,repeat:!!evt.repeat,shiftKey:!!evt.shiftKey,which:evt.which});};_$1.extend(Command.prototype,{/**
      Up Arrow
 
@@ -998,131 +1123,6 @@ self.headerCells=_$1.filter(headerCells,function(cell){return cell.column.get("r
    **/_asEvents:function _asEvents(el){var args;return{on:function on(event,handler){if(args)throw new Error("this is one off wrapper");el.addEventListener(event,handler,false);args=[event,handler];},off:function off(){el.removeEventListener.apply(el,args);}};}});/**
  * Sample definition for the spacer column
  */Backgrid$2.Extension.SizeAbleColumns.spacerColumnDefinition={name:"__spacerColumn",label:"",editable:false,cell:Backgrid$2.StringCell,width:"*",nesting:[],resizeable:false,sortable:false,orderable:false,displayOrder:9999};
-
-/*
- backgrid-paginator
- http://github.com/wyuenho/backgrid-paginator
-
- Copyright (c) 2013 Jimmy Yuen Ho Wong and contributors
- Licensed under the MIT @license.
- */var PageHandle=Backgrid$2.Extension.PageHandle=Backbone.View.extend({/** @property */tagName:"li",/** @property */events:{"click button":"changePage"},/**
-     @property {string|function(Object.<string, string>): string} title
-     The title to use for the `title` attribute of the generated page handle
-     button elements. It can be a string or a function that takes a `data`
-     parameter, which contains a mandatory `label` key which provides the
-     label value to be displayed.
-     */title:function title(data){return'Page '+data.label;},/**
-     @property {boolean} isRewind Whether this handle represents a rewind
-     control
-     */isRewind:false,/**
-     @property {boolean} isBack Whether this handle represents a back
-     control
-     */isBack:false,/**
-     @property {boolean} isForward Whether this handle represents a forward
-     control
-     */isForward:false,/**
-     @property {boolean} isFastForward Whether this handle represents a fast
-     forward control
-     */isFastForward:false,/**
-     Initializer.
-
-     @param {Object} options
-     @param {Backbone.Collection} options.collection
-     @param {number} pageIndex 0-based index of the page number this handle
-     handles. This parameter will be normalized to the base the underlying
-     PageableCollection uses.
-     @param {string} [options.label] If provided it is used to render the
-     button text, otherwise the normalized pageIndex will be used
-     instead. Required if any of the `is*` flags is set to `true`.
-     @param {string} [options.title]
-     @param {boolean} [options.isRewind=false]
-     @param {boolean} [options.isBack=false]
-     @param {boolean} [options.isForward=false]
-     @param {boolean} [options.isFastForward=false]
-     */initialize:function initialize(options){var collection=this.collection,state=collection.state,currentPage=state.currentPage,firstPage=state.firstPage,lastPage=state.lastPage;_$1.extend(this,_$1.pick(options,["isRewind","isBack","isForward","isFastForward"]));var pageIndex;if(this.isRewind)pageIndex=firstPage;else if(this.isBack)pageIndex=Math.max(firstPage,currentPage-1);else if(this.isForward)pageIndex=Math.min(lastPage,currentPage+1);else if(this.isFastForward)pageIndex=lastPage;else{pageIndex=+options.pageIndex;pageIndex=firstPage?pageIndex+1:pageIndex;}this.pageIndex=pageIndex;this.label=(options.label||(firstPage?pageIndex:pageIndex+1))+'';var title=options.title||this.title;this.title=_$1.isFunction(title)?title({label:this.label}):title;},/**
-     Renders a clickable button element under a list item.
-     */render:function render(){this.$el.empty();var button=document.createElement("button");button.type="button";if(this.title)button.title=this.title;button.innerHTML=this.label;this.el.appendChild(button);var collection=this.collection,state=collection.state,currentPage=state.currentPage,pageIndex=this.pageIndex;if(this.isRewind&&currentPage==state.firstPage||this.isBack&&!collection.hasPreviousPage()||this.isForward&&!collection.hasNextPage()||this.isFastForward&&(currentPage==state.lastPage||state.totalPages<1)){this.$el.addClass("disabled");}else if(!(this.isRewind||this.isBack||this.isForward||this.isFastForward)&&state.currentPage==pageIndex){this.$el.addClass("active");}this.delegateEvents();return this;},/**
-     jQuery click event handler. Goes to the page this PageHandle instance
-     represents. No-op if this page handle is currently active or disabled.
-     */changePage:function changePage(e){e.preventDefault();var $el=this.$el,col=this.collection;if(!$el.hasClass("active")&&!$el.hasClass("disabled")){if(this.isRewind)col.getFirstPage();else if(this.isBack)col.getPreviousPage();else if(this.isForward)col.getNextPage();else if(this.isFastForward)col.getLastPage();else col.getPage(this.pageIndex,{reset:true});}return this;}});
- var Paginator=Backgrid$2.Extension.Paginator=Backbone.View.extend({/** @property */className:"backgrid-paginator",/** @property */windowSize:10,/**
-     @property {number} slideScale the number used by #slideHowMuch to scale
-     `windowSize` to yield the number of pages to slide. For example, the
-     default windowSize(10) * slideScale(0.5) yields 5, which means the window
-     will slide forward 5 pages as soon as you've reached page 6. The smaller
-     the scale factor the less pages to slide, and vice versa.
-
-     Also See:
-
-     - #slideMaybe
-     - #slideHowMuch
-     */slideScale:0.5,/**
-     @property {Object.<string, Object.<string, string>>} controls You can
-     disable specific control handles by setting the keys in question to
-     null. The defaults will be merged with your controls object, with your
-     changes taking precedent.
-     */controls:{rewind:{label:"《",title:"First"},back:{label:"〈",title:"Previous"},forward:{label:"〉",title:"Next"},fastForward:{label:"》",title:"Last"}},/** @property */renderIndexedPageHandles:true,/**
-     @property renderMultiplePagesOnly. Determines if the paginator
-     should show in cases where the collection has more than one page.
-     Default is false for backwards compatibility.
-     */renderMultiplePagesOnly:false,/**
-     @property {Backgrid.Extension.PageHandle} pageHandle. The PageHandle
-     class to use for rendering individual handles
-     */pageHandle:PageHandle,/** @property */goBackFirstOnSort:true,/**
-     Initializer.
-
-     @param {Object} options
-     @param {Backbone.Collection} options.collection
-     @param {boolean} [options.controls]
-     @param {boolean} [options.pageHandle=Backgrid.Extension.PageHandle]
-     @param {boolean} [options.goBackFirstOnSort=true]
-     @param {boolean} [options.renderMultiplePagesOnly=false]
-     */initialize:function initialize(options){var self=this;self.controls=_$1.defaults(options.controls||{},self.controls,Paginator.prototype.controls);_$1.extend(self,_$1.pick(options||{},"windowSize","pageHandle","slideScale","goBackFirstOnSort","renderIndexedPageHandles","renderMultiplePagesOnly"));var col=self.collection;self.listenTo(col,"add",self.render);self.listenTo(col,"remove",self.render);self.listenTo(col,"reset",self.render);self.listenTo(col,"backgrid:sorted",function(){if(self.goBackFirstOnSort&&col.state.currentPage!==col.state.firstPage)col.getFirstPage({reset:true});});},/**
-     Decides whether the window should slide. This method should return 1 if
-     sliding should occur and 0 otherwise. The default is sliding should occur
-     if half of the pages in a window has been reached.
-
-     __Note__: All the parameters have been normalized to be 0-based.
-
-     @param {number} firstPage
-     @param {number} lastPage
-     @param {number} currentPage
-     @param {number} windowSize
-     @param {number} slideScale
-
-     @return {0|1}
-     */slideMaybe:function slideMaybe(firstPage,lastPage,currentPage,windowSize,slideScale){return Math.round(currentPage%windowSize/windowSize);},/**
-     Decides how many pages to slide when sliding should occur. The default
-     simply scales the `windowSize` to arrive at a fraction of the `windowSize`
-     to increment.
-
-     __Note__: All the parameters have been normalized to be 0-based.
-
-     @param {number} firstPage
-     @param {number} lastPage
-     @param {number} currentPage
-     @param {number} windowSize
-     @param {number} slideScale
-
-     @return {number}
-     */slideThisMuch:function slideThisMuch(firstPage,lastPage,currentPage,windowSize,slideScale){return~~(windowSize*slideScale);},_calculateWindow:function _calculateWindow(){var collection=this.collection,state=collection.state,firstPage=state.firstPage,lastPage=+state.lastPage;// convert all indices to 0-based here
-lastPage=Math.max(0,firstPage?lastPage-1:lastPage);var currentPage=Math.max(state.currentPage,state.firstPage);currentPage=firstPage?currentPage-1:currentPage;var windowSize=this.windowSize,slideScale=this.slideScale,windowStart=Math.floor(currentPage/windowSize)*windowSize;if(currentPage<=lastPage-this.slideThisMuch()){windowStart+=this.slideMaybe(firstPage,lastPage,currentPage,windowSize,slideScale)*this.slideThisMuch(firstPage,lastPage,currentPage,windowSize,slideScale);}var windowEnd=Math.min(lastPage+1,windowStart+windowSize);return[windowStart,windowEnd];},/**
-     Creates a list of page handle objects for rendering.
-
-     @return {Array.<Object>} an array of page handle objects hashes
-     */makeHandles:function makeHandles(){var handles=[],collection=this.collection,window=this._calculateWindow(),winStart=window[0],winEnd=window[1];if(this.renderIndexedPageHandles){for(var i=winStart;i<winEnd;i++){handles.push(new this.pageHandle({collection:collection,pageIndex:i}));}}var controls=this.controls;_$1.each(["back","rewind","forward","fastForward"],function(key){var value=controls[key];if(value){var handleCtorOpts={collection:collection,title:value.title,label:value.label};handleCtorOpts["is"+key.slice(0,1).toUpperCase()+key.slice(1)]=true;var handle=new this.pageHandle(handleCtorOpts);if(key=="rewind"||key=="back")handles.unshift(handle);else handles.push(handle);}},this);return handles;},/**
-     Render the paginator handles inside an unordered list.
-     */render:function render(){this.$el.empty();var totalPages=this.collection.state.totalPages;// Don't render if collection is empty
-if(this.renderMultiplePagesOnly&&totalPages<=1){return this;}if(this.handles){for(var i=0,l=this.handles.length;i<l;i++){this.handles[i].remove();}}var handles=this.handles=this.makeHandles(),ul=document.createElement("ul");for(var i=0;i<handles.length;i++){ul.appendChild(handles[i].render().el);}this.el.appendChild(ul);return this;}});/**
- Paginator is a Backgrid extension that renders a series of configurable
- pagination handles. This extension is best used for splitting a large data
- set across multiple pages. If the number of pages is larger then a
- threshold, which is set to 10 by default, the page handles are rendered
- within a sliding window, plus the rewind, back, forward and fast forward
- control handles. The individual control handles can be turned off.
-
- @class Backgrid.Extension.Paginator
- */
 
 _$1.templateSettings={interpolate:/\{\{(.+?)\}\}/g,evaluate:/\{\{(.+?)\}\}/g,escape:/\{\{-(.+?)\}\}/g};var EditableHeaderCell=Backgrid$2.HeaderCell.extend({events:{"click .fontello-filter":"toggleFilterDialog","blur label.editable":"renameColumn","keydown label.editable":"renameColumn","click a":"onClick"},renameColumn:function renameColumn(e){var _this=this,$this=_this.$('label.editable');//console.zdebug($this, $this.text().trim(), globalvars.isValidEvent(e));
 // Esc deshace el cambio
