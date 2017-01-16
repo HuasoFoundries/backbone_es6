@@ -29,3 +29,6 @@ define([
 
 });
 ```
+
+### Can I use classes?
+Nope. The inner working of Backbone entities and the way they extend is kept as-is. This project is only a POC to do imports and tree shaking. No more, no less.
