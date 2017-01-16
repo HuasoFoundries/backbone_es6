@@ -691,5 +691,9 @@
   "npm:minimalistic-assert@1.0.0": {
     "deps": {},
     "peerDeps": {}
+  },
+  "github:jashkenas/backbone@1.3.3": {
+    "deps": {},
+    "peerDeps": {}
   }
 }

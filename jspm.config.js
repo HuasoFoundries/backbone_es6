@@ -82,9 +82,6 @@ SystemJS.config({
         }
       }
     }
-  },
-  map: {
-    "plugin-babel": "npm:systemjs-plugin-babel@0.0.17"
   }
 });
 
@@ -95,6 +92,8 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
+    "backbone-es5": "github:jashkenas/backbone@1.3.3",
+    "plugin-babel": "npm:systemjs-plugin-babel@0.0.17",
     "assert": "npm:jspm-nodelibs-assert@0.2.0",
     "buffer": "npm:jspm-nodelibs-buffer@0.2.0",
     "child_process": "npm:jspm-nodelibs-child_process@0.2.0",

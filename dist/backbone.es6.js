@@ -530,4 +530,4 @@ child.__super__=parent.prototype;return child;};// Set up inheritance for the mo
 Model.extend=Collection.extend=Router.extend=View.extend=History.extend=extend;Backbone$1.Model=Model;Backbone$1.Collection=Collection;Backbone$1.View=View;Backbone$1.Router=Router;Backbone$1.History=History;// Create the default Backbone.history.
 Backbone$1.history=new History();
 
-export default Backbone$1;
+export { Model, Collection, View, Router, history };export default Backbone$1;
