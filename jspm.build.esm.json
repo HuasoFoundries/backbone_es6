@@ -31,13 +31,10 @@
 	"packages": {
 
 		"ig_backbone": {
-			"main": "ig_backbone.js",
+			"main": "backbone_es6.js",
 			"format": "esm",
-			"defaultExtension": false,
+			"defaultExtension": false
 
-			"map": {
-				"backbone": "./vendor/backbone.es6.js"
-			}
 		}
 	}
 }

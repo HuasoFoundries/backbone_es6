@@ -3,14 +3,14 @@ SystemJS.config({
     "paths": {
       "npm:": "/jspm_packages/npm/",
       "github:": "/jspm_packages/github/",
-      "ig_backbone/": "/src/"
+      "backbone_es6/": "/src/"
     }
   },
   nodeConfig: {
     "paths": {
       "npm:": "jspm_packages/npm/",
       "github:": "jspm_packages/github/",
-      "ig_backbone/": "src/"
+      "backbone_es6/": "src/"
     }
   },
   devConfig: {
@@ -74,8 +74,8 @@ SystemJS.config({
   },
   transpiler: "plugin-babel",
   packages: {
-    "ig_backbone": {
-      "main": "ig_backbone.js",
+    "backbone_es6": {
+      "main": "backbone_es6.js",
       "meta": {
         "*.js": {
           "loader": "plugin-babel"

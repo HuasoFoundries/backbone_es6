@@ -1,23 +1,19 @@
 module.exports = function (grunt) {
 
 	grunt.config('karma', {
-		options: {
-			basePath: './',
-			frameworks: ['qunit', 'jasmine'],
-
-			reporters: ['progress'],
-
-			port: 9877,
-			colors: true,
-			logLevel: 'INFO',
-			autoWatch: false,
-			browsers: ['PhantomJS'],
-			singleRun: true
-
-		},
-		ig_backbone: {
+		backbone_es6: {
 			options: {
+				basePath: './',
 				frameworks: ['qunit'],
+
+				reporters: ['progress'],
+
+				port: 9877,
+				colors: true,
+				logLevel: 'INFO',
+				autoWatch: false,
+				browsers: ['PhantomJS'],
+				singleRun: true,
 				// list of files / patterns to load in the browser
 				files: [
 					'test/vendor/object-assign-polyfill.js',
@@ -25,58 +21,14 @@ module.exports = function (grunt) {
 					'test/vendor/bluebird.js',
 					'test/vendor/jquery.min.js',
 					'test/vendor/underscore.js',
-					'dist/ig_backbone.bundle.js',
-					'test/ig_backbone/setup/*.js',
-					'test/ig_backbone/*.js'
+					'dist/backbone.umd.js',
+					'test/backbone_es6/setup/*.js',
+					'test/backbone_es6/*.js'
 				]
 
-			}
-		},
-
-		backbone_modal: {
-
-			// base path that will be used to resolve all patterns (eg. files, exclude)
-			options: {
-
-				// frameworks to use
-				// available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-				frameworks: ['jasmine'],
-
-				// list of files / patterns to load in the browser
-				files: [
-					'test/vendor/object-assign-polyfill.js',
-					'test/vendor/prototype-bind-polyfill.js',
-					'test/vendor/jquery.min.js',
-					'test/vendor/underscore.js',
-					'dist/ig_backbone.bundle.js',
-					'test/backbone_modal/setup/*.js',
-					'test/backbone_modal/*.js'
-				]
-			}
-		},
-
-		ig_backgrid: {
-
-			// base path that will be used to resolve all patterns (eg. files, exclude)
-			options: {
-
-				// frameworks to use
-				// available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-				frameworks: ['jasmine'],
-
-				// list of files / patterns to load in the browser
-				files: [
-					'test/vendor/object-assign-polyfill.js',
-					'test/vendor/prototype-bind-polyfill.js',
-					'test/vendor/jquery.min.js',
-					'test/vendor/underscore.js',
-					'dist/ig_backbone.bundle.js',
-					'dist/ig_backgrid.bundle.js',
-					'test/ig_backgrid/setup/environment.js',
-					'test/ig_backgrid/*.js'
-				]
 			}
 		}
+
 	});
 
 	grunt.loadNpmTasks('grunt-karma');

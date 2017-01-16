@@ -3,10 +3,10 @@ VERSION = $(shell cat package.json | sed -n 's/.*"version": "\([^"]*\)",/\1/p')
 SHELL = /usr/bin/env bash
 
 default: build
-.PHONY: ig_backbone ig_backgrid test build ig_backbone_bundle ig_backgrid_bundle
+.PHONY: backbone_es6  test build backbone_es6_bundle 
 
  
-build: ig_backbone ig_backgrid ig_backbone_bundle ig_backgrid_bundle
+build: backbone_es6  backbone_es6_bundle 
 
 version:
 	@echo $(VERSION)
@@ -21,20 +21,13 @@ test:
 
  
 
-ig_backbone:
-	jspm build ig_backbone dist/ig_backbone.js --format esm --skip-source-maps --skip-encode-names --config jspm.build.esm.json --global-deps '{"jquery":"$$", "underscore":"_"}'
+backbone_es6:
+	jspm build backbone_es6 dist/backbone.es6.js --format esm --skip-source-maps --skip-encode-names --config jspm.build.esm.json --global-deps '{"jquery":"$$", "underscore":"_"}'
 
-ig_backbone_bundle:	
-	jspm build ig_backbone dist/ig_backbone.bundle.js --format umd --skip-encode-names --global-name IGBackbone --config jspm.build.amd.json 
+backbone_es6_bundle:	
+	jspm build backbone_es6 dist/backbone.umd.js --format umd --skip-encode-names --global-name BackboneES6 --config jspm.build.amd.json 
 
-	
-	
-ig_backgrid:
-	jspm build ig_backbone/ig_backgrid.js dist/ig_backgrid.js --format esm --skip-source-maps --skip-encode-names --config jspm.backgrid.esm.json --global-deps '{"jquery":"$$", "underscore":"_", "backbone":"IGBackbone"}'
 
-ig_backgrid_bundle:	
-	jspm build ig_backbone/ig_backgrid.js dist/ig_backgrid.bundle.js  --format umd --skip-encode-names --global-name IGBackgrid --config jspm.backgrid.amd.json  --global-deps '{"jquery":"$$", "underscore":"_", "backbone":"IGBackbone"}' 
-	
 
  
 update_version:
