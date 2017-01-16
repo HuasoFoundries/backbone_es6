@@ -25,7 +25,7 @@ backbone_es6:
 	jspm build backbone_es6 dist/backbone.es6.js --format esm --skip-source-maps --skip-encode-names --config jspm.build.esm.json --global-deps '{"jquery":"$$", "underscore":"_"}'
 
 backbone_es6_bundle:	
-	jspm build backbone_es6 dist/backbone.umd.js --format umd --skip-encode-names --global-name BackboneES6 --config jspm.build.amd.json 
+	jspm build backbone_es6 dist/backbone.umd.js --format umd -m --global-name BackboneES6 --config jspm.build.amd.json 
 
 
 
