@@ -17,57 +17,60 @@ SystemJS.config({
     "map": {
       "babel-plugin-transform-es2015-unicode-regex": "npm:babel-plugin-transform-es2015-unicode-regex@6.11.0",
       "babel-plugin-transform-object-assign": "npm:babel-plugin-transform-object-assign@6.8.0",
-      "babel-plugin-transform-merge-sibling-variables": "npm:babel-plugin-transform-merge-sibling-variables@6.8.0"
+      "babel-plugin-transform-merge-sibling-variables": "npm:babel-plugin-transform-merge-sibling-variables@6.8.0",
+      "fs": "npm:jspm-nodelibs-fs@0.2.0",
+      "path": "npm:jspm-nodelibs-path@0.2.1",
+      "process": "npm:jspm-nodelibs-process@0.2.0"
     },
     "packages": {
       "npm:babel-plugin-transform-es2015-unicode-regex@6.11.0": {
         "map": {
           "babel-helper-regex": "npm:babel-helper-regex@6.18.0",
           "regexpu-core": "npm:regexpu-core@2.0.0",
-          "babel-runtime": "npm:babel-runtime@6.18.0"
+          "babel-runtime": "npm:babel-runtime@6.20.0"
         }
       },
       "npm:babel-plugin-transform-object-assign@6.8.0": {
         "map": {
-          "babel-runtime": "npm:babel-runtime@6.18.0"
+          "babel-runtime": "npm:babel-runtime@6.20.0"
         }
       },
       "npm:babel-plugin-transform-merge-sibling-variables@6.8.0": {
         "map": {
-          "babel-runtime": "npm:babel-runtime@6.18.0"
+          "babel-runtime": "npm:babel-runtime@6.20.0"
         }
       },
       "npm:babel-helper-regex@6.18.0": {
         "map": {
-          "babel-runtime": "npm:babel-runtime@6.18.0",
-          "babel-types": "npm:babel-types@6.18.0",
-          "lodash": "npm:lodash@4.16.6"
+          "babel-runtime": "npm:babel-runtime@6.20.0",
+          "babel-types": "npm:babel-types@6.21.0",
+          "lodash": "npm:lodash@4.17.4"
         }
       },
       "npm:regexpu-core@2.0.0": {
         "map": {
           "regjsgen": "npm:regjsgen@0.2.0",
-          "regenerate": "npm:regenerate@1.3.1",
+          "regenerate": "npm:regenerate@1.3.2",
           "regjsparser": "npm:regjsparser@0.1.5"
-        }
-      },
-      "npm:babel-runtime@6.18.0": {
-        "map": {
-          "regenerator-runtime": "npm:regenerator-runtime@0.9.6",
-          "core-js": "npm:core-js@2.4.1"
-        }
-      },
-      "npm:babel-types@6.18.0": {
-        "map": {
-          "babel-runtime": "npm:babel-runtime@6.18.0",
-          "lodash": "npm:lodash@4.16.6",
-          "esutils": "npm:esutils@2.0.2",
-          "to-fast-properties": "npm:to-fast-properties@1.0.2"
         }
       },
       "npm:regjsparser@0.1.5": {
         "map": {
           "jsesc": "npm:jsesc@0.5.0"
+        }
+      },
+      "npm:babel-runtime@6.20.0": {
+        "map": {
+          "regenerator-runtime": "npm:regenerator-runtime@0.10.1",
+          "core-js": "npm:core-js@2.4.1"
+        }
+      },
+      "npm:babel-types@6.21.0": {
+        "map": {
+          "babel-runtime": "npm:babel-runtime@6.20.0",
+          "lodash": "npm:lodash@4.17.4",
+          "to-fast-properties": "npm:to-fast-properties@1.0.2",
+          "esutils": "npm:esutils@2.0.2"
         }
       }
     }
@@ -81,50 +84,7 @@ SystemJS.config({
           "loader": "plugin-babel"
         }
       }
-    }
-  }
-});
-
-SystemJS.config({
-  packageConfigPaths: [
-    "npm:@*/*.json",
-    "npm:*.json",
-    "github:*/*.json"
-  ],
-  map: {
-    "backbone-es5": "github:jashkenas/backbone@1.3.3",
-    "plugin-babel": "npm:systemjs-plugin-babel@0.0.17",
-    "assert": "npm:jspm-nodelibs-assert@0.2.0",
-    "buffer": "npm:jspm-nodelibs-buffer@0.2.0",
-    "child_process": "npm:jspm-nodelibs-child_process@0.2.0",
-    "constants": "npm:jspm-nodelibs-constants@0.2.0",
-    "crypto": "npm:jspm-nodelibs-crypto@0.2.0",
-    "css": "github:systemjs/plugin-css@0.1.32",
-    "dgram": "npm:jspm-nodelibs-dgram@0.2.0",
-    "dns": "npm:jspm-nodelibs-dns@0.2.0",
-    "events": "npm:jspm-nodelibs-events@0.2.0",
-    "fs": "npm:jspm-nodelibs-fs@0.2.0",
-    "http": "npm:jspm-nodelibs-http@0.2.0",
-    "https": "npm:jspm-nodelibs-https@0.2.1",
-    "json": "github:systemjs/plugin-json@0.1.2",
-    "less": "npm:systemjs-less-plugin@1.8.4",
-    "module": "npm:jspm-nodelibs-module@0.2.0",
-    "net": "npm:jspm-nodelibs-net@0.2.0",
-    "os": "npm:jspm-nodelibs-os@0.2.0",
-    "path": "npm:jspm-nodelibs-path@0.2.1",
-    "process": "npm:jspm-nodelibs-process@0.2.0",
-    "querystring": "npm:jspm-nodelibs-querystring@0.2.0",
-    "stream": "npm:jspm-nodelibs-stream@0.2.0",
-    "string_decoder": "npm:jspm-nodelibs-string_decoder@0.2.0",
-    "text": "github:systemjs/plugin-text@0.0.7",
-    "tls": "npm:jspm-nodelibs-tls@0.2.0",
-    "tty": "npm:jspm-nodelibs-tty@0.2.0",
-    "url": "npm:jspm-nodelibs-url@0.2.0",
-    "util": "npm:jspm-nodelibs-util@0.2.1",
-    "vm": "npm:jspm-nodelibs-vm@0.2.0",
-    "zlib": "npm:jspm-nodelibs-zlib@0.2.0"
-  },
-  packages: {
+    },
     "npm:jspm-nodelibs-http@0.2.0": {
       "map": {
         "http-browserify": "npm:stream-http@2.5.0"
@@ -361,5 +321,46 @@ SystemJS.config({
         "minimalistic-assert": "npm:minimalistic-assert@1.0.0"
       }
     }
+  },
+  map: {
+    "assert": "npm:jspm-nodelibs-assert@0.2.0",
+    "buffer": "npm:jspm-nodelibs-buffer@0.2.0",
+    "child_process": "npm:jspm-nodelibs-child_process@0.2.0",
+    "constants": "npm:jspm-nodelibs-constants@0.2.0",
+    "crypto": "npm:jspm-nodelibs-crypto@0.2.0",
+    "css": "github:systemjs/plugin-css@0.1.32",
+    "dgram": "npm:jspm-nodelibs-dgram@0.2.0",
+    "dns": "npm:jspm-nodelibs-dns@0.2.0",
+    "events": "npm:jspm-nodelibs-events@0.2.0",
+    "http": "npm:jspm-nodelibs-http@0.2.0",
+    "https": "npm:jspm-nodelibs-https@0.2.1",
+    "json": "github:systemjs/plugin-json@0.1.2",
+    "less": "npm:systemjs-less-plugin@1.8.4",
+    "module": "npm:jspm-nodelibs-module@0.2.0",
+    "net": "npm:jspm-nodelibs-net@0.2.0",
+    "os": "npm:jspm-nodelibs-os@0.2.0",
+    "querystring": "npm:jspm-nodelibs-querystring@0.2.0",
+    "stream": "npm:jspm-nodelibs-stream@0.2.0",
+    "string_decoder": "npm:jspm-nodelibs-string_decoder@0.2.0",
+    "text": "github:systemjs/plugin-text@0.0.7",
+    "tls": "npm:jspm-nodelibs-tls@0.2.0",
+    "tty": "npm:jspm-nodelibs-tty@0.2.0",
+    "url": "npm:jspm-nodelibs-url@0.2.0",
+    "util": "npm:jspm-nodelibs-util@0.2.1",
+    "vm": "npm:jspm-nodelibs-vm@0.2.0",
+    "zlib": "npm:jspm-nodelibs-zlib@0.2.0"
   }
+});
+
+SystemJS.config({
+  packageConfigPaths: [
+    "npm:@*/*.json",
+    "npm:*.json",
+    "github:*/*.json"
+  ],
+  map: {
+    "backbone-es5": "github:jashkenas/backbone@1.3.3",
+    "plugin-babel": "npm:systemjs-plugin-babel@0.0.19"
+  },
+  packages: {}
 });
