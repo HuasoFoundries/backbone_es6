@@ -23,7 +23,7 @@ module.exports = function (grunt) {
 					'test/vendor/underscore.js',
 					'dist/backbone.umd.js',
 					'test/backbone_es6/setup/*.js',
-					'test/backbone_es6/*.js'
+					'jspm_packages/github/jashkenas/backbone*/test/*.js'
 				]
 
 			}
