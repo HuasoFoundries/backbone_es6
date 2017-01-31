@@ -1,6 +1,6 @@
 {
   "name": "backbone_es6",
-  "version": "17.0.2",
+  "version": "17.0.3",
   "description": "Backbone library in ES6 flavor",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "license": "MIT",
@@ -42,8 +42,7 @@
     "main": "dist/backbone.es6.js",
     "format": "esm",
     "dependencies": {
-
-      "plugin-babel": "npm:systemjs-plugin-babel@^0.0.19"
+      "plugin-babel": "npm:systemjs-plugin-babel@^0.0.20"
     },
     "devDependencies": {
       "backbone-es5": "github:jashkenas/backbone@^1.3.3",

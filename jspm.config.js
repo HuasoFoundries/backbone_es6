@@ -20,7 +20,8 @@ SystemJS.config({
       "babel-plugin-transform-merge-sibling-variables": "npm:babel-plugin-transform-merge-sibling-variables@6.8.0",
       "fs": "npm:jspm-nodelibs-fs@0.2.0",
       "path": "npm:jspm-nodelibs-path@0.2.1",
-      "process": "npm:jspm-nodelibs-process@0.2.0"
+      "process": "npm:jspm-nodelibs-process@0.2.0",
+      "backbone-es5": "github:jashkenas/backbone@1.3.3"
     },
     "packages": {
       "npm:babel-plugin-transform-es2015-unicode-regex@6.11.0": {
@@ -359,8 +360,7 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
-    "backbone-es5": "github:jashkenas/backbone@1.3.3",
-    "plugin-babel": "npm:systemjs-plugin-babel@0.0.19"
+    "plugin-babel": "npm:systemjs-plugin-babel@0.0.20"
   },
   packages: {}
 });

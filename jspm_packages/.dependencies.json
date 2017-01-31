@@ -577,10 +577,6 @@
     "deps": {},
     "peerDeps": {}
   },
-  "npm:systemjs-plugin-babel@0.0.19": {
-    "deps": {},
-    "peerDeps": {}
-  },
   "npm:babel-plugin-transform-es2015-unicode-regex@6.11.0": {
     "deps": {
       "babel-helper-regex": "npm:babel-helper-regex@^6.8.0",
@@ -693,6 +689,10 @@
     }
   },
   "npm:jspm-nodelibs-process@0.2.0": {
+    "deps": {},
+    "peerDeps": {}
+  },
+  "npm:systemjs-plugin-babel@0.0.20": {
     "deps": {},
     "peerDeps": {}
   }
