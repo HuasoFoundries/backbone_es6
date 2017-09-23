@@ -2076,5 +2076,6 @@ Backbone$1.History = History;
 
 // Create the default Backbone.history.
 Backbone$1.history = new History();
+var history = Backbone$1.history;
 
-export { Model, Collection, View, Router, History };export default Backbone$1;
+export { Model, Collection, View, Router, History, history };export default Backbone$1;

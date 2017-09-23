@@ -1,20 +1,25 @@
 {
   "name": "backbone_es6",
-  "version": "17.0.5",
+  "version": "17.0.6",
   "description": "Backbone library in ES6 flavor",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/InstaGIS/backbone-backgrid-js"
+    "url": "https://github.com/huasofoundries/backbone_es6"
   },
   "bugs": {
-    "url": "https://github.com/InstaGIS/backbone-backgrid-js/issues"
+    "url": "https://github.com/huasofoundries/backbone_es6/issues"
   },
   "homepage": "https://www.instagis.com",
   "engines": {
     "node": "6.0.x"
   },
+  "keywords": [
+    "backbone",
+    "es6",
+    "es2015"
+  ],
   "files": [
     "dist"
   ],

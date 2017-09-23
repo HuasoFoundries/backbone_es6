@@ -84,13 +84,15 @@ Backbone.History = History;
 
 // Create the default Backbone.history.
 Backbone.history = new History;
+var history = Backbone.history;
 
 export {
   Model,
   Collection,
   View,
   Router,
-  History
+  History,
+  history
 }
 
 export default Backbone;

@@ -2082,12 +2082,14 @@ Backbone$1.History = History;
 
 // Create the default Backbone.history.
 Backbone$1.history = new History();
+var history = Backbone$1.history;
 
 exports.Model = Model;
 exports.Collection = Collection;
 exports.View = View;
 exports.Router = Router;
 exports.History = History;
+exports.history = history;
 exports['default'] = Backbone$1;
 
 Object.defineProperty(exports, '__esModule', { value: true });
