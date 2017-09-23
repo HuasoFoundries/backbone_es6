@@ -22,17 +22,14 @@ test:
  
 
 backbone_es6:
-	# --config jspm.build.esm.json --global-deps '{"jquery":"$$", "underscore":"_"}'
-	jspm build backbone_es6 dist/backbone.es6.js --format esm --skip-source-maps --skip-encode-names 
+	$$(npm bin)/jspm build backbone_es6 dist/backbone.es6.js --format esm --skip-source-maps --skip-encode-names 
 
 backbone_bundle:	
-	# --config jspm.build.amd.json 
-	jspm build backbone_es6 dist/backbone.js --format umd --global-name BackboneES6 
+	$$(npm bin)/jspm build backbone_es6 dist/backbone.js --format umd --global-name BackboneES6 
 	
 
 backbone_min:		
-	# --config jspm.build.amd.json 
-	jspm build backbone_es6 dist/backbone.min.js --format umd -m --global-name BackboneES6 
+	$$(npm bin)/jspm build backbone_es6 dist/backbone.min.js --format umd -m --global-name BackboneES6 
 
 
 
