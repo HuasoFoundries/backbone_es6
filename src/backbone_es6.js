@@ -90,7 +90,7 @@ export {
   Collection,
   View,
   Router,
-  history
+  History
 }
 
 export default Backbone;

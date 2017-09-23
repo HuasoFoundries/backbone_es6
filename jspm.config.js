@@ -15,68 +15,28 @@ SystemJS.config({
   },
   devConfig: {
     "map": {
-      "babel-plugin-transform-es2015-unicode-regex": "npm:babel-plugin-transform-es2015-unicode-regex@6.11.0",
-      "babel-plugin-transform-object-assign": "npm:babel-plugin-transform-object-assign@6.8.0",
-      "babel-plugin-transform-merge-sibling-variables": "npm:babel-plugin-transform-merge-sibling-variables@6.8.0",
       "fs": "npm:jspm-nodelibs-fs@0.2.0",
       "path": "npm:jspm-nodelibs-path@0.2.1",
       "process": "npm:jspm-nodelibs-process@0.2.0",
       "backbone-es5": "github:jashkenas/backbone@1.3.3"
-    },
-    "packages": {
-      "npm:babel-plugin-transform-es2015-unicode-regex@6.11.0": {
-        "map": {
-          "babel-helper-regex": "npm:babel-helper-regex@6.18.0",
-          "regexpu-core": "npm:regexpu-core@2.0.0",
-          "babel-runtime": "npm:babel-runtime@6.20.0"
-        }
-      },
-      "npm:babel-plugin-transform-object-assign@6.8.0": {
-        "map": {
-          "babel-runtime": "npm:babel-runtime@6.20.0"
-        }
-      },
-      "npm:babel-plugin-transform-merge-sibling-variables@6.8.0": {
-        "map": {
-          "babel-runtime": "npm:babel-runtime@6.20.0"
-        }
-      },
-      "npm:babel-helper-regex@6.18.0": {
-        "map": {
-          "babel-runtime": "npm:babel-runtime@6.20.0",
-          "babel-types": "npm:babel-types@6.21.0",
-          "lodash": "npm:lodash@4.17.4"
-        }
-      },
-      "npm:regexpu-core@2.0.0": {
-        "map": {
-          "regjsgen": "npm:regjsgen@0.2.0",
-          "regenerate": "npm:regenerate@1.3.2",
-          "regjsparser": "npm:regjsparser@0.1.5"
-        }
-      },
-      "npm:regjsparser@0.1.5": {
-        "map": {
-          "jsesc": "npm:jsesc@0.5.0"
-        }
-      },
-      "npm:babel-runtime@6.20.0": {
-        "map": {
-          "regenerator-runtime": "npm:regenerator-runtime@0.10.1",
-          "core-js": "npm:core-js@2.4.1"
-        }
-      },
-      "npm:babel-types@6.21.0": {
-        "map": {
-          "babel-runtime": "npm:babel-runtime@6.20.0",
-          "lodash": "npm:lodash@4.17.4",
-          "to-fast-properties": "npm:to-fast-properties@1.0.2",
-          "esutils": "npm:esutils@2.0.2"
-        }
-      }
     }
   },
   transpiler: "plugin-babel",
+  paths: {
+    "jquery": "test/vendor/jquery.js",
+    "underscore": "test/vendor/underscore.js"
+  },
+  meta: {
+    "dist/**/*.js": {
+      "build": false
+    },
+    "dist/*.js": {
+      "build": false
+    },
+    "test/vendor/*": {
+      "build": false
+    }
+  },
   packages: {
     "backbone_es6": {
       "main": "backbone_es6.js",
@@ -360,7 +320,7 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
-    "plugin-babel": "npm:systemjs-plugin-babel@0.0.20"
+    "plugin-babel": "npm:systemjs-plugin-babel@0.0.25"
   },
   packages: {}
 });

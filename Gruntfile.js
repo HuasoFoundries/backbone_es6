@@ -21,7 +21,7 @@ module.exports = function (grunt) {
 					'test/vendor/bluebird.js',
 					'test/vendor/jquery.min.js',
 					'test/vendor/underscore.js',
-					'dist/backbone.umd.js',
+					'dist/backbone.js',
 					'test/backbone_es6/setup/*.js',
 					'jspm_packages/github/jashkenas/backbone*/test/*.js'
 				]

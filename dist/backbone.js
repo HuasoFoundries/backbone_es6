@@ -1,5 +1,11 @@
-import $ from 'jquery';
-import _ from 'underscore';
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('jquery'), require('underscore')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'jquery', 'underscore'], factory) :
+  (factory((global.BackboneES6 = global.BackboneES6 || {}),global.$,global._));
+}(this, (function (exports,$,_) { 'use strict';
+
+$ = 'default' in $ ? $['default'] : $;
+_ = 'default' in _ ? _['default'] : _;
 
 //     Backbone.js 1.3.3
 
@@ -2077,4 +2083,15 @@ Backbone$1.History = History;
 // Create the default Backbone.history.
 Backbone$1.history = new History();
 
-export { Model, Collection, View, Router, History };export default Backbone$1;
+exports.Model = Model;
+exports.Collection = Collection;
+exports.View = View;
+exports.Router = Router;
+exports.History = History;
+exports['default'] = Backbone$1;
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
+
+//# sourceMappingURL=backbone.js.map

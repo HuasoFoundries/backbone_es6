@@ -1,6 +1,6 @@
 {
   "name": "backbone_es6",
-  "version": "17.0.4",
+  "version": "17.0.5",
   "description": "Backbone library in ES6 flavor",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "license": "MIT",
@@ -16,7 +16,6 @@
     "node": "6.0.x"
   },
   "files": [
-    "src",
     "dist"
   ],
   "main": "dist/backbone.umd.js",
@@ -35,28 +34,26 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
-    "eslint": "^3.13.1"
+    "eslint": "^3.13.1",
+    "jquery": "^3.2.1",
+    "underscore": "^1.8.3"
   },
   "jspm": {
     "registry": "jspm",
-    "main": "dist/backbone.es6.js",
+    "main": "backbone.es6.js",
+    "directories": {
+      "lib": "dist"
+    },
     "format": "esm",
     "dependencies": {},
     "devDependencies": {
       "backbone-es5": "github:jashkenas/backbone@^1.3.3",
-      "babel-plugin-transform-es2015-unicode-regex": "npm:babel-plugin-transform-es2015-unicode-regex@^6.11.0",
-      "babel-plugin-transform-merge-sibling-variables": "npm:babel-plugin-transform-merge-sibling-variables@^6.8.0",
-      "babel-plugin-transform-object-assign": "npm:babel-plugin-transform-object-assign@^6.8.0",
       "fs": "npm:jspm-nodelibs-fs@^0.2.0",
       "path": "npm:jspm-nodelibs-path@^0.2.0",
       "process": "npm:jspm-nodelibs-process@^0.2.0"
     },
-    "files": [
-      "src",
-      "dist"
-    ],
     "peerDependencies": {
-      "plugin-babel": "npm:systemjs-plugin-babel@^0.0.20"
+      "plugin-babel": "npm:systemjs-plugin-babel@^0.0.25"
     },
     "overrides": {
       "npm:browserify-zlib@0.1.4": {
@@ -72,12 +69,6 @@
         "ignore": [
           "test.js"
         ]
-      },
-      "npm:lodash@4.17.4": {
-        "map": {
-          "buffer": "@empty",
-          "process": "@empty"
-        }
       }
     }
   }
