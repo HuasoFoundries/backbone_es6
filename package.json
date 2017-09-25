@@ -1,6 +1,6 @@
 {
   "name": "backbone_es6",
-  "version": "17.0.9",
+  "version": "17.0.10",
   "description": "Backbone library in ES6 flavor",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "license": "MIT",
@@ -19,6 +19,12 @@
     "backbone",
     "es6",
     "es2015"
+  ],
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENCE"
   ],
 
   "main": "dist/backbone.js",

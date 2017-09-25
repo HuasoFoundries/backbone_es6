@@ -8,4 +8,5 @@ Gruntfile.js
 Makefile
 backbone.node.js
 jspm.config.js
+jspm_packages
 .travis.yml
