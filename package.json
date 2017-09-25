@@ -1,6 +1,6 @@
 {
   "name": "backbone_es6",
-  "version": "17.0.10",
+  "version": "17.0.11",
   "description": "Backbone library in ES6 flavor",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "license": "MIT",
@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/huasofoundries/backbone_es6/issues"
   },
-  "homepage": "https://www.instagis.com",
+  "homepage": "https://github.com/huasofoundries/backbone_es6",
   "engines": {
     "node": "6.0.x"
   },
