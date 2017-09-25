@@ -23,13 +23,16 @@ test:
 
 backbone_es6:
 	$$(npm bin)/jspm build backbone_es6 dist/backbone.es6.js --format esm --skip-source-maps --skip-encode-names 
+	
 
 backbone_bundle:	
-	$$(npm bin)/jspm build backbone_es6 dist/backbone.js --format umd --global-name BackboneES6 
+	$$(npm bin)/jspm build backbone_es6/backbone.js dist/backbone.js --format umd --global-name BackboneES6 --skip-source-maps --skip-encode-names 
+	sed -i s/".BackboneES6"/""/g dist/backbone.js
 	
 
 backbone_min:		
-	$$(npm bin)/jspm build backbone_es6 dist/backbone.min.js --format umd -m --global-name BackboneES6 
+	$$(npm bin)/jspm build backbone_es6/backbone.js dist/backbone.min.js --format umd -m --global-name BackboneES6 --skip-encode-names 
+	sed -i s/".BackboneES6"/""/g dist/backbone.min.js
 
 
 

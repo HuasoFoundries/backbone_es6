@@ -1,0 +1,11 @@
+test/
+src/
+Gruntfile.js
+.eslint*
+.npmignore
+.editorconfig
+.jsbeautifyrc
+Makefile
+backbone.node.js
+jspm.config.js
+.travis.yml

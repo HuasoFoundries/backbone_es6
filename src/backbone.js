@@ -102,30 +102,7 @@ var bind = Backbone.bind;
 var unbind = Backbone.unbind;
 
 export {
-  Backbone,
-  VERSION,
-  $,
-  noConflict,
-  emulateHTTP,
-  emulateJSON,
-  sync,
-  ajax,
-  Events,
-  on,
-  listenTo,
-  off,
-  stopListening,
-  once,
-  listenToOnce,
-  trigger,
-  bind,
-  unbind,
-  Model,
-  Collection,
-  View,
-  Router,
-  History,
-  history
+  Backbone
 }
 
 export default Backbone;

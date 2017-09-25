@@ -1,9 +1,5 @@
 (function (window, QUnit, undefined) {
 
-  window.Backbone = BackboneES6.default;
-  console.log('Backbone is', Backbone.VERSION);
-  console.log('$ is', $.fn.jquery);
-  console.log('_ is', _.VERSION);
   var sync = Backbone.sync;
   var ajax = Backbone.ajax;
   var emulateHTTP = Backbone.emulateHTTP;

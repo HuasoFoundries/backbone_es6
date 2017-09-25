@@ -2078,4 +2078,20 @@ Backbone$1.History = History;
 Backbone$1.history = new History();
 var history = Backbone$1.history;
 
-export { Model, Collection, View, Router, History, history };export default Backbone$1;
+var VERSION = Backbone$1.VERSION;
+var noConflict = Backbone$1.noConflict;
+var emulateHTTP = Backbone$1.emulateHTTP;
+var emulateJSON = Backbone$1.emulateJSON;
+var sync$1 = Backbone$1.sync;
+var ajax = Backbone$1.ajax;
+var on = Backbone$1.on;
+var listenTo = Backbone$1.listenTo;
+var off = Backbone$1.off;
+var stopListening = Backbone$1.stopListening;
+var once = Backbone$1.once;
+var listenToOnce = Backbone$1.listenToOnce;
+var trigger = Backbone$1.trigger;
+var bind = Backbone$1.bind;
+var unbind = Backbone$1.unbind;
+
+export { Backbone$1 as Backbone, VERSION, $, noConflict, emulateHTTP, emulateJSON, sync$1 as sync, ajax, Events, on, listenTo, off, stopListening, once, listenToOnce, trigger, bind, unbind, Model, Collection, View, Router, History, history };export default Backbone$1;

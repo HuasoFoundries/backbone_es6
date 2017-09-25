@@ -1,3 +1,4 @@
+var _ = require('underscore');
 var Backbone = require('./dist/backbone.js');
 
-console.log(Backbone);
+console.log(_.keys(Backbone.default));

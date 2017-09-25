@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('jquery'), require('underscore')) :
   typeof define === 'function' && define.amd ? define(['exports', 'jquery', 'underscore'], factory) :
-  (factory((global.BackboneES6 = global.BackboneES6 || {}),global.$,global._));
+  (factory((global = global || {}),global.$,global._));
 }(this, (function (exports,$,_) { 'use strict';
 
 $ = 'default' in $ ? $['default'] : $;
@@ -2082,18 +2082,10 @@ Backbone$1.History = History;
 
 // Create the default Backbone.history.
 Backbone$1.history = new History();
-var history = Backbone$1.history;
 
-exports.Model = Model;
-exports.Collection = Collection;
-exports.View = View;
-exports.Router = Router;
-exports.History = History;
-exports.history = history;
+exports.Backbone = Backbone$1;
 exports['default'] = Backbone$1;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-
-//# sourceMappingURL=backbone.js.map
