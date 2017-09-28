@@ -1,9 +1,10 @@
 {
   "name": "backbone_es6",
-  "version": "17.1.0",
+  "version": "17.1.1",
   "description": "Backbone library in ES6 flavor",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "license": "MIT",
+  "readmeFilename": "README.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/huasofoundries/backbone_es6"
@@ -45,6 +46,7 @@
   "jspm": {
     "registry": "jspm",
     "main": "backbone.es6.js",
+    "format": "esm",
     "directories": {
       "lib": "dist"
     },
