@@ -4,7 +4,7 @@
 
 This repo contains an ES6 version of [Backbone.js]((https://github.com/jashkenas/backbone)) allowing for imports and **tree shaking**.
 
-This package is made by deconstructing Backbone sources, separating it into modules and reassembling them using [JSPM](https://github.com/jspm/jspm-cli) + [Rollup](https://github.com/rollup/rollup).
+This package is made by deconstructing Backbone sources, separating it into modules and reassembling them using [Rollup](https://github.com/rollup/rollup).
 
 ## Tree Shaking?
 
@@ -21,7 +21,7 @@ Install this package with npm with
 npm install --save backbone_es6
 ```
 
-### Using JSPM
+### Using [JSPM](https://github.com/jspm/jspm-cli)
 
 ```sh
 jspm install npm:backbone_es6
@@ -43,7 +43,7 @@ If you use AMD, CommonJS or want to load Backbone ES6 with a script tag, make su
 
 ```js
 define([
-  'dist/backbone.js'
+  './node_modules/backbone_es6/dist/backbone.js'
 ],function(Backbone) {
 
   ...your code...
@@ -54,26 +54,49 @@ define([
 Whereas, using ES6 syntax, you would use
 
 ```js
-import {Backbone} from 'backbone.es6.js';
+import {Backbone} from './node_modules/backbone_es6/dist/backbone.es6.js';
 ```
 
-`package.json` already declares `dist/backbone.js` as the `main` script, while `dist/backbone.es6.js` is declared as the `jsnext:main` script.
+`package.json` already declares `dist/backbone.js` as the `main` script, while `dist/backbone.es6.js` is declared as the `jsnext:main` and `module` script properties.
 
-### Using it with JSPM
 
-If you installed Backbone ES6 with jspm, `backbone` will be mapped automatically to `dist/backbone.es6.js`, AMD usage would be:
+
+### Using it with [JSPM](https://github.com/jspm/jspm-cli)
+
+If you installed Backbone ES6 with jspm, `backbone_es6` will be mapped automatically to `dist/backbone.es6.js`, so AMD usage would need you to point directly to `backbone.js`:
 
 ```js
 define([
-  'backbone'
+  'backbone_es6/backbone.js'
 ],function(Backbone) {
 
+  ...your code...
+
+});
+```
+
+But, if you're transpiling  (using [plugin-babel](https://github.com/systemjs/plugin-babel)) you could use AMD syntax as:
+
+
+```js
+define([
+  'backbone_es6'
+],function(Backbone) {
+
+  // Please note that you need to check for the "default" export
   Backbone = 'default' in Backbone ? Backbone.default : Backbone;
 
   ...your code...
 
 });
 ```
+
+or 
+
+```js
+import {Backbone} from 'backbone_es6';
+```
+
 
 
 

@@ -13,25 +13,26 @@ version:
 
 install: 
 	npm install
-	jspm install
+	$$(npm bin)/jspm install
 
 
 test:
-	grunt karma
+	$$(npm bin)/karma start
+	$$(npm bin)/karma start karma.min.conf.js 
 
  
 
 backbone_es6:
-	$$(npm bin)/jspm build backbone_es6 dist/backbone.es6.js --format esm --skip-source-maps --skip-encode-names 
+	$$(npm bin)/rollup -c rollup.config.es6.js
 	
 
 backbone_bundle:	
-	$$(npm bin)/jspm build backbone_es6/backbone.js dist/backbone.js --format umd --global-name BackboneES6 --skip-source-maps --skip-encode-names 
+	$$(npm bin)/rollup -c
 	sed -i s/".BackboneES6"/""/g dist/backbone.js
 	
 
 backbone_min:		
-	$$(npm bin)/jspm build backbone_es6/backbone.js dist/backbone.min.js --format umd -m --global-name BackboneES6 --skip-encode-names 
+	$$(npm bin)/rollup -c rollup.config.min.js
 	sed -i s/".BackboneES6"/""/g dist/backbone.min.js
 
 
