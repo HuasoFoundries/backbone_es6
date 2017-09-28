@@ -13,7 +13,6 @@ version:
 
 install: 
 	npm install
-	$$(npm bin)/jspm install
 
 
 test:

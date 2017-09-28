@@ -1,6 +1,6 @@
 {
   "name": "backbone_es6",
-  "version": "17.1.1",
+  "version": "17.1.2",
   "description": "Backbone library in ES6 flavor",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "license": "MIT",
