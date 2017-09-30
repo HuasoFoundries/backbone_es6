@@ -11,6 +11,17 @@ This package is made by deconstructing Backbone sources, separating it into modu
 Tree shaking allows you to include just the code you need instead of a whole library. Say, for example, your app needs to use just Backbone's router, you can import just that part, resulting in a smaller build size overall.
 
 
+## Dependencies
+
+To use this library, your project sould already have
+
+- [jQuery](https://jquery.com/)
+- [Underscore](http://underscorejs.org/)
+
+They aren't explicitly listed as dependencies in `package.json` (for npm nor jspm), because you might want to use other drop in replacements for these dependencies
+(for example, [lodash@^3](https://www.npmjs.com/package/lodash) instead of Underscore, or jquery.slim.js build instead of jquery.min.js).
+
+
 ## Installation
 
 ### Using npm
@@ -98,10 +109,12 @@ import {Backbone} from 'backbone_es6';
 ```
 
 
-
-
-
 ## Can I use classes?
 
 Nope. The inner working of Backbone entities and the way they extend is kept as-is. This project is only a POC to do imports and tree shaking. No more, no less.
+
+
+## Documentation
+
+As this library is meant to be a full drop-in replacement of Backbone.js, the same [docs](http://backbonejs.org/) apply.
 
