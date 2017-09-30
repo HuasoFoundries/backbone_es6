@@ -3,7 +3,7 @@ VERSION = $(shell cat package.json | sed -n 's/.*"version": "\([^"]*\)",/\1/p')
 SHELL = /usr/bin/env bash
 
 default: build
-.PHONY: backbone_es6  test build backbone_bundle backbone_min
+.PHONY: backbone_es6  test build backbone_bundle backbone_min remove_tag
 
  
 build: backbone_es6  backbone_bundle backbone_min
@@ -48,7 +48,7 @@ ifeq ($(shell expr "${CURRENT_HOTFIX}" \> "$(NEXT_HOTFIX)"),1)
 	$(error "v" parameter is lower than current version ${VERSION})
 endif
 ifeq ($(v),)
-	$(error v is undefined)
+	$(error v is undefined. You must set a tag name. e.g. make tag v=v1.0.0 or make release v=v1.0.0)
 endif
 ifeq (${VERSION},$(v))
 	$(error v is already the current version)
@@ -78,3 +78,12 @@ tag_and_push:
 tag: build release
 
 release: test check_version update_version tag_and_push	
+
+
+remove_tag:
+ifeq ($(t),)
+	$(error t is undefined, you must config a tag name. e.g. make remove_tag t=v1.0.0)
+endif
+	@echo "Removing tag " $(t) locally and remotely
+	git tag -d $(t)
+	git push origin :refs/tags/$(t)

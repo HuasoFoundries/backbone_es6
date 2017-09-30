@@ -1,6 +1,6 @@
 # Backbone ES6
 
-[![Travis CI](https://travis-ci.org/HuasoFoundries/backbone_es6.svg?branch=master)](https://travis-ci.org/HuasoFoundries/backbone_es6)
+[![npm](https://img.shields.io/npm/dm/backbone_es6.svg?style=plastic)](https://www.npmjs.com/package/backbone_es6) [![Travis CI](https://travis-ci.org/HuasoFoundries/backbone_es6.svg?branch=master)](https://travis-ci.org/HuasoFoundries/backbone_es6)[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/HuasoFoundries/backbone_es6/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/HuasoFoundries/backbone_es6/?branch=master)[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1fd6d39caced49a4bfb9d65439ee491c)](https://www.codacy.com/app/amenadiel/backbone_es6?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HuasoFoundries/backbone_es6&amp;utm_campaign=Badge_Grade)
 
 This repo contains an ES6 version of [Backbone.js]((https://github.com/jashkenas/backbone)) allowing for imports and **tree shaking**.
 
