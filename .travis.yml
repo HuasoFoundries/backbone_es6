@@ -1,9 +1,7 @@
 language: node_js
+cache:
+  directories:
+    - node_modules
 node_js:
-  - "6.1"
-install:
-  - make install
-script:
-  - make build
-after_success:
-  - make test  
+  - "6.11.2"
+ 

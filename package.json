@@ -13,6 +13,9 @@
     "url": "https://github.com/HuasoFoundries/backbone_es6/issues"
   },
   "homepage": "https://github.com/HuasoFoundries/backbone_es6",
+  "scripts": {
+    "test": "karma start && MINIFIED=true karma start"
+  },
   "engines": {
     "node": "6.11.2"
   },
