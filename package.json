@@ -1,6 +1,6 @@
 {
   "name": "backbone_es6",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Backbone library in ES6 flavor",
   "author": "Felipe Figueroa  <amenadiel@gmail.com>",
   "license": "MIT",
@@ -34,8 +34,8 @@
   "jsdelivr": "dist/backbone.min.js",
   "dependencies": {},
   "devDependencies": {
-    "babel-eslint": "^7",
-    "eslint": "^3",
+    "babel-eslint": "^8.0.1",
+    "eslint": "^4.10.0",
     "karma": "^1.1",
     "karma-phantomjs-launcher": "^1",
     "karma-qunit": "^1.1.0",
