@@ -139,7 +139,9 @@ _.extend(Model.prototype, Events, {
     // For each `set` attribute, update or delete the current value.
     for (var attr in attrs) {
       val = attrs[attr];
-      if (!_.isEqual(current[attr], val)) changes.push(attr);
+      if (!_.isEqual(current[attr], val)) {
+        changes.push(attr);
+      }
       if (!_.isEqual(prev[attr], val)) {
         changed[attr] = val;
       } else {
@@ -193,7 +195,9 @@ _.extend(Model.prototype, Events, {
   // Clear all attributes on the model, firing `"change"`.
   clear: function (options) {
     var attrs = {};
-    for (var key in this.attributes) attrs[key] = void 0;
+    for (var key in this.attributes) {
+      attrs[key] = void 0;
+    }
     return this.set(attrs, _.extend({}, options, {
       unset: true
     }));
@@ -224,7 +228,9 @@ _.extend(Model.prototype, Events, {
     var hasChanged;
     for (var attr in diff) {
       var val = diff[attr];
-      if (_.isEqual(old[attr], val)) continue;
+      if (_.isEqual(old[attr], val)) {
+        continue;
+      }
       changed[attr] = val;
       hasChanged = true;
     }
@@ -258,7 +264,9 @@ _.extend(Model.prototype, Events, {
       var serverAttrs = options.parse ? model.parse(resp,
           options) :
         resp;
-      if (!model.set(serverAttrs, options)) return false;
+      if (!model.set(serverAttrs, options)) {
+        return false;
+      }
       if (success) {
         success.call(options.context, model, resp,
           options);
@@ -292,7 +300,9 @@ _.extend(Model.prototype, Events, {
     // `set(attr).save(null, opts)` with validation. Otherwise, check if
     // the model will be valid when the attributes, if any, are set.
     if (attrs && !wait) {
-      if (!this.set(attrs, options)) return false;
+      if (!this.set(attrs, options)) {
+        return false;
+      }
     } else if (!this._validate(attrs, options)) {
       return false;
     }
@@ -311,8 +321,9 @@ _.extend(Model.prototype, Events, {
       if (wait) {
         serverAttrs = _.extend({}, attrs, serverAttrs);
       }
-      if (serverAttrs && !model.set(serverAttrs, options))
+      if (serverAttrs && !model.set(serverAttrs, options)) {
         return false;
+      }
       if (success) {
         success.call(options.context, model, resp,
           options);
@@ -391,7 +402,9 @@ _.extend(Model.prototype, Events, {
       _.result(this, 'urlRoot') ||
       _.result(this.collection, 'url') ||
       urlError();
-    if (this.isNew()) return base;
+    if (this.isNew()) {
+      return base;
+    }
     var id = this.get(this.idAttribute);
     return base.replace(/[^\/]$/, '$&/') + encodeURIComponent(id);
   },

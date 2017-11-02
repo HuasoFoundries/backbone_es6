@@ -18,6 +18,14 @@ import {
 // having to worry about render order ... and makes it easy for the view to
 // react to specific changes in the state of your models.
 
+// Cached regex to split keys for `delegate`.
+var delegateEventSplitter = /^(\S+)\s*(.*)$/;
+
+// List of view options to be set as properties.
+var viewOptions = ['model', 'collection', 'el', 'id', 'attributes',
+  'className', 'tagName', 'events'
+];
+
 // Creating a Backbone.View creates its initial element outside of the DOM,
 // if an existing element is not provided...
 var View = function (options) {
@@ -27,14 +35,6 @@ var View = function (options) {
   this._ensureElement();
   this.initialize.apply(this, arguments);
 };
-
-// Cached regex to split keys for `delegate`.
-var delegateEventSplitter = /^(\S+)\s*(.*)$/;
-
-// List of view options to be set as properties.
-var viewOptions = ['model', 'collection', 'el', 'id', 'attributes',
-  'className', 'tagName', 'events'
-];
 
 // Set up all inheritable **Backbone.View** properties and methods.
 _.extend(View.prototype, Events, {
@@ -118,7 +118,9 @@ _.extend(View.prototype, Events, {
     this.undelegateEvents();
     for (var key in events) {
       var method = events[key];
-      if (!_.isFunction(method)) method = this[method];
+      if (!_.isFunction(method)) {
+        method = this[method];
+      }
       if (!method) {
         continue;
       }

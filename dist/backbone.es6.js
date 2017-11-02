@@ -698,7 +698,9 @@ _.extend(Model.prototype, Events, {
     // For each `set` attribute, update or delete the current value.
     for (var attr in attrs) {
       val = attrs[attr];
-      if (!_.isEqual(current[attr], val)) changes.push(attr);
+      if (!_.isEqual(current[attr], val)) {
+        changes.push(attr);
+      }
       if (!_.isEqual(prev[attr], val)) {
         changed[attr] = val;
       } else {
@@ -752,7 +754,9 @@ _.extend(Model.prototype, Events, {
   // Clear all attributes on the model, firing `"change"`.
   clear: function (options) {
     var attrs = {};
-    for (var key in this.attributes) attrs[key] = void 0;
+    for (var key in this.attributes) {
+      attrs[key] = void 0;
+    }
     return this.set(attrs, _.extend({}, options, {
       unset: true
     }));
@@ -783,7 +787,9 @@ _.extend(Model.prototype, Events, {
     var hasChanged;
     for (var attr in diff) {
       var val = diff[attr];
-      if (_.isEqual(old[attr], val)) continue;
+      if (_.isEqual(old[attr], val)) {
+        continue;
+      }
       changed[attr] = val;
       hasChanged = true;
     }
@@ -817,7 +823,9 @@ _.extend(Model.prototype, Events, {
       var serverAttrs = options.parse ? model.parse(resp,
           options) :
         resp;
-      if (!model.set(serverAttrs, options)) return false;
+      if (!model.set(serverAttrs, options)) {
+        return false;
+      }
       if (success) {
         success.call(options.context, model, resp,
           options);
@@ -851,7 +859,9 @@ _.extend(Model.prototype, Events, {
     // `set(attr).save(null, opts)` with validation. Otherwise, check if
     // the model will be valid when the attributes, if any, are set.
     if (attrs && !wait) {
-      if (!this.set(attrs, options)) return false;
+      if (!this.set(attrs, options)) {
+        return false;
+      }
     } else if (!this._validate(attrs, options)) {
       return false;
     }
@@ -870,8 +880,9 @@ _.extend(Model.prototype, Events, {
       if (wait) {
         serverAttrs = _.extend({}, attrs, serverAttrs);
       }
-      if (serverAttrs && !model.set(serverAttrs, options))
+      if (serverAttrs && !model.set(serverAttrs, options)) {
         return false;
+      }
       if (success) {
         success.call(options.context, model, resp,
           options);
@@ -950,7 +961,9 @@ _.extend(Model.prototype, Events, {
       _.result(this, 'urlRoot') ||
       _.result(this.collection, 'url') ||
       urlError();
-    if (this.isNew()) return base;
+    if (this.isNew()) {
+      return base;
+    }
     var id = this.get(this.idAttribute);
     return base.replace(/[^\/]$/, '$&/') + encodeURIComponent(id);
   },
@@ -1663,6 +1676,14 @@ addUnderscoreMethods(Collection, collectionMethods, 'models');
 // having to worry about render order ... and makes it easy for the view to
 // react to specific changes in the state of your models.
 
+// Cached regex to split keys for `delegate`.
+var delegateEventSplitter = /^(\S+)\s*(.*)$/;
+
+// List of view options to be set as properties.
+var viewOptions = ['model', 'collection', 'el', 'id', 'attributes',
+  'className', 'tagName', 'events'
+];
+
 // Creating a Backbone.View creates its initial element outside of the DOM,
 // if an existing element is not provided...
 var View = function (options) {
@@ -1672,14 +1693,6 @@ var View = function (options) {
   this._ensureElement();
   this.initialize.apply(this, arguments);
 };
-
-// Cached regex to split keys for `delegate`.
-var delegateEventSplitter = /^(\S+)\s*(.*)$/;
-
-// List of view options to be set as properties.
-var viewOptions = ['model', 'collection', 'el', 'id', 'attributes',
-  'className', 'tagName', 'events'
-];
 
 // Set up all inheritable **Backbone.View** properties and methods.
 _.extend(View.prototype, Events, {
@@ -1763,7 +1776,9 @@ _.extend(View.prototype, Events, {
     this.undelegateEvents();
     for (var key in events) {
       var method = events[key];
-      if (!_.isFunction(method)) method = this[method];
+      if (!_.isFunction(method)) {
+        method = this[method];
+      }
       if (!method) {
         continue;
       }
@@ -1918,7 +1933,9 @@ _.extend(Router.prototype, Events, {
   // order of the routes here to support behavior where the most general
   // routes can be defined at the bottom of the route map.
   _bindRoutes: function () {
-    if (!this.routes) return;
+    if (!this.routes) {
+      return;
+    }
     this.routes = _.result(this, 'routes');
     var route, routes = _.keys(this.routes);
     while ((route = routes.pop()) != null) {
