@@ -1,4 +1,19 @@
 module.exports = function (config) {
+  var files = [
+    'test/vendor/object-assign-polyfill.js',
+    'test/vendor/prototype-bind-polyfill.js',
+    'test/vendor/jquery.min.js',
+    'test/vendor/underscore.js'
+  ];
+
+  if (process.env.MINIFIED) {
+    files.push('dist/backbone.min.js');
+  } else {
+    files.push('dist/backbone.js');
+  }
+
+  files = files.concat(['test/setup/*.js', 'test/*.js']);
+
   config.set({
     basePath: '',
     port: 9877,
@@ -10,15 +25,7 @@ module.exports = function (config) {
     frameworks: ['qunit'],
     reporters: ['progress'],
 
-    files: [
-      'test/vendor/object-assign-polyfill.js',
-      'test/vendor/prototype-bind-polyfill.js',
-      'test/vendor/jquery.min.js',
-      'test/vendor/underscore.js',
-      'dist/backbone.js',
-      'test/setup/*.js',
-      'test/*.js'
-    ]
+    files: files
 
   });
 };

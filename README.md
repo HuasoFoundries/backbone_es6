@@ -24,6 +24,25 @@ They aren't explicitly listed as dependencies in `package.json` (for npm nor jsp
 
 ## Installation
 
+
+### Including it with a script tag
+
+Include this package in your HTML file directly with a script tag  using [unpkg](https://unpkg.com/#/) or [jsdelivr](https://www.jsdelivr.com/)
+
+```html
+<script src="https://unpkg.com/backbone_es6/dist/backbone.min.js"></script>
+```
+
+
+**or**
+
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/backbone_es6/dist/backbone.min.js"></script>
+```
+
+
+
 ### Using npm
 
 Install this package with npm with
@@ -41,11 +60,9 @@ jspm install npm:backbone_es6
 
 ## Can I use this as a drop-in replacement of Backbone?
 
-Is your project already using ES6 imports? 
+**Yes you can**. Under the `dist` folder you can find scripts `backbone.js` and `backbone.min.js` that are in UMD format and can be used as a drop-in replacement for goold old vanilla Backbone. The minified version is listed as the `main` property in `package.json` so it's what you'll use by default.
 
-If it isn't, don't worry. Under the `dist` folder you can find scripts `backbone.js` and `backbone.min.js` that are in UMD format and can be used as a drop-in replacement for goold old vanilla Backbone. 
-
-These scripts are also used to run the tests. Said tests are the same as the ones in the [official Backbone repo](https://github.com/jashkenas/backbone), to ensure Backbone ES6's compatibility.
+These scripts are also used to run the tests. Said tests are the same as the ones in the [official Backbone repo](https://github.com/jashkenas/backbone), to ensure full Backbone ES6's compatibility with its parent framework.
 
 
 ### Using it with AMD
@@ -68,25 +85,20 @@ Whereas, using ES6 syntax, you would use
 import {Backbone} from './node_modules/backbone_es6/dist/backbone.es6.js';
 ```
 
-`package.json` already declares `dist/backbone.js` as the `main` script, while `dist/backbone.es6.js` is declared as the `jsnext:main` and `module` script properties.
+`package.json` declares `dist/backbone.es6.js` as the `jsnext:main` and `module` script properties.
 
 
 
 ### Using it with [JSPM](https://github.com/jspm/jspm-cli)
 
-If you installed Backbone ES6 with jspm, `backbone_es6` will be mapped automatically to `dist/backbone.es6.js`, so AMD usage would need you to point directly to `backbone.js`:
+If you installed Backbone ES6 with jspm, `backbone_es6` will be mapped automatically to `dist/backbone.es6.js`. If you're tranpiling (using [plugin-babel](https://github.com/systemjs/plugin-babel)) you can import the module as:
+
 
 ```js
-define([
-  'backbone_es6/backbone.js'
-],function(Backbone) {
-
-  ...your code...
-
-});
+import {Backbone} from 'backbone_es6';
 ```
 
-But, if you're transpiling  (using [plugin-babel](https://github.com/systemjs/plugin-babel)) you could use AMD syntax as:
+or you could use AMD syntax as:
 
 
 ```js
@@ -102,11 +114,20 @@ define([
 });
 ```
 
-or 
+
+If you are **not using a transpiler** and want to use the AMD build, use:
+
 
 ```js
-import {Backbone} from 'backbone_es6';
+define([
+  'backbone_es6/backbone.min.js'
+],function(Backbone) {
+
+  ...your code...
+
+});
 ```
+
 
 
 ## Can I use classes?

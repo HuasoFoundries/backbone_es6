@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/HuasoFoundries/backbone_es6",
   "engines": {
-    "node": "6.0.x"
+    "node": "6.11.2"
   },
   "keywords": [
     "backbone",
@@ -27,9 +27,11 @@
     "README.md",
     "LICENCE"
   ],
-  "main": "dist/backbone.js",
+  "main": "dist/backbone.min.js",
   "jsnext:main": "dist/backbone.es6.js",
   "module": "dist/backbone.es6.js",
+  "unpkg": "dist/backbone.min.js",
+  "jsdelivr": "dist/backbone.min.js",
   "dependencies": {},
   "devDependencies": {
     "babel-eslint": "^7",
