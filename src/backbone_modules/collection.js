@@ -379,9 +379,11 @@ _.extend(Collection.prototype, Events, {
     options = options || {};
 
     var length = comparator.length;
-    if (_.isFunction(comparator)) comparator = _.bind(
-      comparator,
-      this);
+    if (_.isFunction(comparator)) {
+      comparator = _.bind(
+        comparator,
+        this);
+    }
 
     // Run sort based on type of `comparator`.
     if (length === 1 || _.isString(comparator)) {

@@ -26,8 +26,12 @@ var Model = function (attributes, options) {
   this.preinitialize.apply(this, arguments);
   this.cid = _.uniqueId(this.cidPrefix);
   this.attributes = {};
-  if (options.collection) this.collection = options.collection;
-  if (options.parse) attrs = this.parse(attrs, options) || {};
+  if (options.collection) {
+    this.collection = options.collection;
+  }
+  if (options.parse) {
+    attrs = this.parse(attrs, options) || {};
+  }
   var defaults = _.result(this, 'defaults');
   attrs = _.defaults(_.extend({}, defaults, attrs), defaults);
   this.set(attrs, options);
@@ -96,7 +100,9 @@ _.extend(Model.prototype, Events, {
   // the core primitive operation of a model, updating the data and notifying
   // anyone who needs to know about the change in state. The heart of the beast.
   set: function (key, val, options) {
-    if (key == null) return this;
+    if (key == null) {
+      return this;
+    }
 
     // Handle both `"key", value` and `{key: value}` -style arguments.
     var attrs;
@@ -110,7 +116,9 @@ _.extend(Model.prototype, Events, {
     options = options || {};
 
     // Run validation.
-    if (!this._validate(attrs, options)) return false;
+    if (!this._validate(attrs, options)) {
+      return false;
+    }
 
     // Extract attributes and options.
     var unset = options.unset;
@@ -141,11 +149,15 @@ _.extend(Model.prototype, Events, {
     }
 
     // Update the `id`.
-    if (this.idAttribute in attrs) this.id = this.get(this.idAttribute);
+    if (this.idAttribute in attrs) {
+      this.id = this.get(this.idAttribute);
+    }
 
     // Trigger all relevant attribute changes.
     if (!silent) {
-      if (changes.length) this._pending = options;
+      if (changes.length) {
+        this._pending = options;
+      }
       for (var i = 0; i < changes.length; i++) {
         this.trigger('change:' + changes[i], this, current[
             changes[i]],
@@ -155,7 +167,9 @@ _.extend(Model.prototype, Events, {
 
     // You might be wondering why there's a `while` loop here. Changes can
     // be recursively nested within `"change"` events.
-    if (changing) return this;
+    if (changing) {
+      return this;
+    }
     if (!silent) {
       while (this._pending) {
         options = this._pending;
@@ -188,7 +202,9 @@ _.extend(Model.prototype, Events, {
   // Determine if the model has changed since the last `"change"` event.
   // If you specify an attribute name, determine if that attribute has changed.
   hasChanged: function (attr) {
-    if (attr == null) return !_.isEmpty(this.changed);
+    if (attr == null) {
+      return !_.isEmpty(this.changed);
+    }
     return _.has(this.changed, attr);
   },
 
@@ -199,8 +215,10 @@ _.extend(Model.prototype, Events, {
   // You can also pass an attributes object to diff against the model,
   // determining if there *would be* a change.
   changedAttributes: function (diff) {
-    if (!diff) return this.hasChanged() ? _.clone(this.changed) :
-      false;
+    if (!diff) {
+      return this.hasChanged() ? _.clone(this.changed) :
+        false;
+    }
     var old = this._changing ? this._previousAttributes : this.attributes;
     var changed = {};
     var hasChanged;
@@ -216,7 +234,9 @@ _.extend(Model.prototype, Events, {
   // Get the previous value of an attribute, recorded at the time the last
   // `"change"` event was fired.
   previous: function (attr) {
-    if (attr == null || !this._previousAttributes) return null;
+    if (attr == null || !this._previousAttributes) {
+      return null;
+    }
     return this._previousAttributes[attr];
   },
 
@@ -239,8 +259,10 @@ _.extend(Model.prototype, Events, {
           options) :
         resp;
       if (!model.set(serverAttrs, options)) return false;
-      if (success) success.call(options.context, model, resp,
-        options);
+      if (success) {
+        success.call(options.context, model, resp,
+          options);
+      }
       model.trigger('sync', model, resp, options);
     };
     wrapError(this, options);
@@ -286,24 +308,32 @@ _.extend(Model.prototype, Events, {
       var serverAttrs = options.parse ? model.parse(resp,
           options) :
         resp;
-      if (wait) serverAttrs = _.extend({}, attrs, serverAttrs);
+      if (wait) {
+        serverAttrs = _.extend({}, attrs, serverAttrs);
+      }
       if (serverAttrs && !model.set(serverAttrs, options))
         return false;
-      if (success) success.call(options.context, model, resp,
-        options);
+      if (success) {
+        success.call(options.context, model, resp,
+          options);
+      }
       model.trigger('sync', model, resp, options);
     };
     wrapError(this, options);
 
     // Set temporary attributes if `{wait: true}` to properly find new ids.
-    if (attrs && wait) this.attributes = _.extend({}, attributes,
-      attrs);
+    if (attrs && wait) {
+      this.attributes = _.extend({}, attributes,
+        attrs);
+    }
 
     var method = this.isNew() ? 'create' : (options.patch ?
       'patch' :
       'update');
-    if (method === 'patch' && !options.attrs) options.attrs =
-      attrs;
+    if (method === 'patch' && !options.attrs) {
+      options.attrs =
+        attrs;
+    }
     var xhr = this.sync(method, this, options);
 
     // Restore attributes.
@@ -327,11 +357,17 @@ _.extend(Model.prototype, Events, {
     };
 
     options.success = function (resp) {
-      if (wait) destroy();
-      if (success) success.call(options.context, model, resp,
-        options);
-      if (!model.isNew()) model.trigger('sync', model, resp,
-        options);
+      if (wait) {
+        destroy();
+      }
+      if (success) {
+        success.call(options.context, model, resp,
+          options);
+      }
+      if (!model.isNew()) {
+        model.trigger('sync', model, resp,
+          options);
+      }
     };
 
     var xhr = false;
@@ -341,7 +377,9 @@ _.extend(Model.prototype, Events, {
       wrapError(this, options);
       xhr = this.sync('delete', this, options);
     }
-    if (!wait) destroy();
+    if (!wait) {
+      destroy();
+    }
     return xhr;
   },
 
@@ -384,12 +422,16 @@ _.extend(Model.prototype, Events, {
   // Run validation against the next complete set of model attributes,
   // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
   _validate: function (attrs, options) {
-    if (!options.validate || !this.validate) return true;
+    if (!options.validate || !this.validate) {
+      return true;
+    }
     attrs = _.extend({}, this.attributes, attrs);
     var error = this.validationError = this.validate(attrs,
         options) ||
       null;
-    if (!error) return true;
+    if (!error) {
+      return true;
+    }
     this.trigger('invalid', this, error, _.extend(options, {
       validationError: error
     }));

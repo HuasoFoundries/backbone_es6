@@ -7,13 +7,10 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-
-
-
 // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
 // We use `self` instead of `window` for `WebWorker` support.
-var root = (typeof self == 'object' && self.self === self && self) ||
-  (typeof global == 'object' && global.global === global && global);
+var root = (typeof self === 'object' && self.self === self && self) ||
+  (typeof global === 'object' && global.global === global && global);
 
 // Initial Setup
 // -------------
@@ -37,9 +34,45 @@ Backbone.noConflict = function () {
   root.Backbone = previousBackbone;
   return this;
 };
+var modelMatcher = function (attrs) {
+  var matcher = _.matches(attrs);
+  return function (model) {
+    return matcher(model.attributes);
+  };
+};
 
+// Throw an error when a URL is needed, and none is supplied.
+var urlError = function () {
+  throw new Error('A "url" property or function must be specified');
+};
 
+// Wrap an optional error callback with a fallback error event.
+var wrapError = function (model, options) {
+  var error = options.error;
+  options.error = function (resp) {
+    if (error) {
+      error.call(options.context, model, resp, options);
+    }
+    model.trigger('error', model, resp, options);
+  };
+};
 
+// Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
+var cb = function (iteratee, instance) {
+  if (_.isFunction(iteratee)) {
+    return iteratee;
+  }
+  if (_.isObject(iteratee) && !instance._isModel(iteratee)) {
+    return modelMatcher(
+      iteratee);
+  }
+  if (_.isString(iteratee)) {
+    return function (model) {
+      return model.get(iteratee);
+    };
+  }
+  return iteratee;
+};
 // Proxy Backbone class methods to Underscore functions, wrapping the model's
 // `attributes` object or collection's `models` array behind the scenes.
 //
@@ -77,41 +110,12 @@ var addMethod = function (length, method, attribute) {
 };
 var addUnderscoreMethods = function (Class, methods, attribute) {
   _.each(methods, function (length, method) {
-    if (_[method]) Class.prototype[method] = addMethod(
-      length,
-      method, attribute);
+    if (_[method]) {
+      Class.prototype[method] = addMethod(
+        length,
+        method, attribute);
+    }
   });
-};
-
-// Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
-var cb = function (iteratee, instance) {
-  if (_.isFunction(iteratee)) return iteratee;
-  if (_.isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(
-    iteratee);
-  if (_.isString(iteratee)) return function (model) {
-    return model.get(iteratee);
-  };
-  return iteratee;
-};
-var modelMatcher = function (attrs) {
-  var matcher = _.matches(attrs);
-  return function (model) {
-    return matcher(model.attributes);
-  };
-};
-
-// Throw an error when a URL is needed, and none is supplied.
-var urlError = function () {
-  throw new Error('A "url" property or function must be specified');
-};
-
-// Wrap an optional error callback with a fallback error event.
-var wrapError = function (model, options) {
-  var error = options.error;
-  options.error = function (resp) {
-    if (error) error.call(options.context, model, resp, options);
-    model.trigger('error', model, resp, options);
-  };
 };
 
 // Turn on `emulateHTTP` to support legacy HTTP servers. Setting this option
@@ -124,7 +128,6 @@ Backbone.emulateHTTP = false;
 // `application/x-www-form-urlencoded` instead and will send the model in a
 // form param named `model`.
 Backbone.emulateJSON = false;
-
 
 // Map from CRUD to HTTP for our default `Backbone.sync` implementation.
 var methodMap = {
@@ -152,7 +155,7 @@ var methodMap = {
 // instead of `application/json` with the model in a param named `model`.
 // Useful when interfacing with server-side languages like **PHP** that make
 // it difficult to read the body of `PUT` requests.
-Backbone.sync =  function (method, model, options) {
+Backbone.sync = function (method, model, options) {
   var type = methodMap[method];
 
   // Default options, unless specified.
@@ -194,11 +197,15 @@ Backbone.sync =  function (method, model, options) {
       type ===
       'PATCH')) {
     params.type = 'POST';
-    if (options.emulateJSON) params.data._method = type;
+    if (options.emulateJSON) {
+      params.data._method = type;
+    }
     var beforeSend = options.beforeSend;
     options.beforeSend = function (xhr) {
       xhr.setRequestHeader('X-HTTP-Method-Override', type);
-      if (beforeSend) return beforeSend.apply(this, arguments);
+      if (beforeSend) {
+        return beforeSend.apply(this, arguments);
+      }
     };
   }
 
@@ -212,8 +219,10 @@ Backbone.sync =  function (method, model, options) {
   options.error = function (xhr, textStatus, errorThrown) {
     options.textStatus = textStatus;
     options.errorThrown = errorThrown;
-    if (error) error.call(options.context, xhr, textStatus,
-      errorThrown);
+    if (error) {
+      error.call(options.context, xhr, textStatus,
+        errorThrown);
+    }
   };
 
   // Make the request, allowing the user to override any Ajax options.
@@ -222,13 +231,15 @@ Backbone.sync =  function (method, model, options) {
   return xhr;
 };
 
-
 // Set the default implementation of `Backbone.ajax` to proxy through to `$`.
 // Override this if you'd like to use a different library.
 Backbone.ajax = function () {
   return Backbone.$.ajax.apply(Backbone.$, arguments);
 };
 
-
-
-export {urlError,wrapError,addUnderscoreMethods,Backbone};
+export {
+  urlError,
+  wrapError,
+  addUnderscoreMethods,
+  Backbone
+};

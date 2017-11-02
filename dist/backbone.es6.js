@@ -9,8 +9,8 @@ import _ from 'underscore';
 //     http://backbonejs.org
 // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
 // We use `self` instead of `window` for `WebWorker` support.
-var root = (typeof self == 'object' && self.self === self && self) ||
-  (typeof global == 'object' && global.global === global && global);
+var root = (typeof self === 'object' && self.self === self && self) ||
+  (typeof global === 'object' && global.global === global && global);
 
 // Initial Setup
 // -------------
@@ -34,9 +34,45 @@ Backbone$1.noConflict = function () {
   root.Backbone = previousBackbone;
   return this;
 };
+var modelMatcher = function (attrs) {
+  var matcher = _.matches(attrs);
+  return function (model) {
+    return matcher(model.attributes);
+  };
+};
 
+// Throw an error when a URL is needed, and none is supplied.
+var urlError = function () {
+  throw new Error('A "url" property or function must be specified');
+};
 
+// Wrap an optional error callback with a fallback error event.
+var wrapError = function (model, options) {
+  var error = options.error;
+  options.error = function (resp) {
+    if (error) {
+      error.call(options.context, model, resp, options);
+    }
+    model.trigger('error', model, resp, options);
+  };
+};
 
+// Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
+var cb = function (iteratee, instance) {
+  if (_.isFunction(iteratee)) {
+    return iteratee;
+  }
+  if (_.isObject(iteratee) && !instance._isModel(iteratee)) {
+    return modelMatcher(
+      iteratee);
+  }
+  if (_.isString(iteratee)) {
+    return function (model) {
+      return model.get(iteratee);
+    };
+  }
+  return iteratee;
+};
 // Proxy Backbone class methods to Underscore functions, wrapping the model's
 // `attributes` object or collection's `models` array behind the scenes.
 //
@@ -74,41 +110,12 @@ var addMethod = function (length, method, attribute) {
 };
 var addUnderscoreMethods = function (Class, methods, attribute) {
   _.each(methods, function (length, method) {
-    if (_[method]) Class.prototype[method] = addMethod(
-      length,
-      method, attribute);
+    if (_[method]) {
+      Class.prototype[method] = addMethod(
+        length,
+        method, attribute);
+    }
   });
-};
-
-// Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
-var cb = function (iteratee, instance) {
-  if (_.isFunction(iteratee)) return iteratee;
-  if (_.isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(
-    iteratee);
-  if (_.isString(iteratee)) return function (model) {
-    return model.get(iteratee);
-  };
-  return iteratee;
-};
-var modelMatcher = function (attrs) {
-  var matcher = _.matches(attrs);
-  return function (model) {
-    return matcher(model.attributes);
-  };
-};
-
-// Throw an error when a URL is needed, and none is supplied.
-var urlError = function () {
-  throw new Error('A "url" property or function must be specified');
-};
-
-// Wrap an optional error callback with a fallback error event.
-var wrapError = function (model, options) {
-  var error = options.error;
-  options.error = function (resp) {
-    if (error) error.call(options.context, model, resp, options);
-    model.trigger('error', model, resp, options);
-  };
 };
 
 // Turn on `emulateHTTP` to support legacy HTTP servers. Setting this option
@@ -121,7 +128,6 @@ Backbone$1.emulateHTTP = false;
 // `application/x-www-form-urlencoded` instead and will send the model in a
 // form param named `model`.
 Backbone$1.emulateJSON = false;
-
 
 // Map from CRUD to HTTP for our default `Backbone.sync` implementation.
 var methodMap = {
@@ -149,7 +155,7 @@ var methodMap = {
 // instead of `application/json` with the model in a param named `model`.
 // Useful when interfacing with server-side languages like **PHP** that make
 // it difficult to read the body of `PUT` requests.
-Backbone$1.sync =  function (method, model, options) {
+Backbone$1.sync = function (method, model, options) {
   var type = methodMap[method];
 
   // Default options, unless specified.
@@ -191,11 +197,15 @@ Backbone$1.sync =  function (method, model, options) {
       type ===
       'PATCH')) {
     params.type = 'POST';
-    if (options.emulateJSON) params.data._method = type;
+    if (options.emulateJSON) {
+      params.data._method = type;
+    }
     var beforeSend = options.beforeSend;
     options.beforeSend = function (xhr) {
       xhr.setRequestHeader('X-HTTP-Method-Override', type);
-      if (beforeSend) return beforeSend.apply(this, arguments);
+      if (beforeSend) {
+        return beforeSend.apply(this, arguments);
+      }
     };
   }
 
@@ -209,8 +219,10 @@ Backbone$1.sync =  function (method, model, options) {
   options.error = function (xhr, textStatus, errorThrown) {
     options.textStatus = textStatus;
     options.errorThrown = errorThrown;
-    if (error) error.call(options.context, xhr, textStatus,
-      errorThrown);
+    if (error) {
+      error.call(options.context, xhr, textStatus,
+        errorThrown);
+    }
   };
 
   // Make the request, allowing the user to override any Ajax options.
@@ -218,7 +230,6 @@ Backbone$1.sync =  function (method, model, options) {
   model.trigger('request', model, xhr, options);
   return xhr;
 };
-
 
 // Set the default implementation of `Backbone.ajax` to proxy through to `$`.
 // Override this if you'd like to use a different library.
@@ -574,8 +585,12 @@ var Model = function (attributes, options) {
   this.preinitialize.apply(this, arguments);
   this.cid = _.uniqueId(this.cidPrefix);
   this.attributes = {};
-  if (options.collection) this.collection = options.collection;
-  if (options.parse) attrs = this.parse(attrs, options) || {};
+  if (options.collection) {
+    this.collection = options.collection;
+  }
+  if (options.parse) {
+    attrs = this.parse(attrs, options) || {};
+  }
   var defaults = _.result(this, 'defaults');
   attrs = _.defaults(_.extend({}, defaults, attrs), defaults);
   this.set(attrs, options);
@@ -644,7 +659,9 @@ _.extend(Model.prototype, Events, {
   // the core primitive operation of a model, updating the data and notifying
   // anyone who needs to know about the change in state. The heart of the beast.
   set: function (key, val, options) {
-    if (key == null) return this;
+    if (key == null) {
+      return this;
+    }
 
     // Handle both `"key", value` and `{key: value}` -style arguments.
     var attrs;
@@ -658,7 +675,9 @@ _.extend(Model.prototype, Events, {
     options = options || {};
 
     // Run validation.
-    if (!this._validate(attrs, options)) return false;
+    if (!this._validate(attrs, options)) {
+      return false;
+    }
 
     // Extract attributes and options.
     var unset = options.unset;
@@ -689,11 +708,15 @@ _.extend(Model.prototype, Events, {
     }
 
     // Update the `id`.
-    if (this.idAttribute in attrs) this.id = this.get(this.idAttribute);
+    if (this.idAttribute in attrs) {
+      this.id = this.get(this.idAttribute);
+    }
 
     // Trigger all relevant attribute changes.
     if (!silent) {
-      if (changes.length) this._pending = options;
+      if (changes.length) {
+        this._pending = options;
+      }
       for (var i = 0; i < changes.length; i++) {
         this.trigger('change:' + changes[i], this, current[
             changes[i]],
@@ -703,7 +726,9 @@ _.extend(Model.prototype, Events, {
 
     // You might be wondering why there's a `while` loop here. Changes can
     // be recursively nested within `"change"` events.
-    if (changing) return this;
+    if (changing) {
+      return this;
+    }
     if (!silent) {
       while (this._pending) {
         options = this._pending;
@@ -736,7 +761,9 @@ _.extend(Model.prototype, Events, {
   // Determine if the model has changed since the last `"change"` event.
   // If you specify an attribute name, determine if that attribute has changed.
   hasChanged: function (attr) {
-    if (attr == null) return !_.isEmpty(this.changed);
+    if (attr == null) {
+      return !_.isEmpty(this.changed);
+    }
     return _.has(this.changed, attr);
   },
 
@@ -747,8 +774,10 @@ _.extend(Model.prototype, Events, {
   // You can also pass an attributes object to diff against the model,
   // determining if there *would be* a change.
   changedAttributes: function (diff) {
-    if (!diff) return this.hasChanged() ? _.clone(this.changed) :
-      false;
+    if (!diff) {
+      return this.hasChanged() ? _.clone(this.changed) :
+        false;
+    }
     var old = this._changing ? this._previousAttributes : this.attributes;
     var changed = {};
     var hasChanged;
@@ -764,7 +793,9 @@ _.extend(Model.prototype, Events, {
   // Get the previous value of an attribute, recorded at the time the last
   // `"change"` event was fired.
   previous: function (attr) {
-    if (attr == null || !this._previousAttributes) return null;
+    if (attr == null || !this._previousAttributes) {
+      return null;
+    }
     return this._previousAttributes[attr];
   },
 
@@ -787,8 +818,10 @@ _.extend(Model.prototype, Events, {
           options) :
         resp;
       if (!model.set(serverAttrs, options)) return false;
-      if (success) success.call(options.context, model, resp,
-        options);
+      if (success) {
+        success.call(options.context, model, resp,
+          options);
+      }
       model.trigger('sync', model, resp, options);
     };
     wrapError(this, options);
@@ -834,24 +867,32 @@ _.extend(Model.prototype, Events, {
       var serverAttrs = options.parse ? model.parse(resp,
           options) :
         resp;
-      if (wait) serverAttrs = _.extend({}, attrs, serverAttrs);
+      if (wait) {
+        serverAttrs = _.extend({}, attrs, serverAttrs);
+      }
       if (serverAttrs && !model.set(serverAttrs, options))
         return false;
-      if (success) success.call(options.context, model, resp,
-        options);
+      if (success) {
+        success.call(options.context, model, resp,
+          options);
+      }
       model.trigger('sync', model, resp, options);
     };
     wrapError(this, options);
 
     // Set temporary attributes if `{wait: true}` to properly find new ids.
-    if (attrs && wait) this.attributes = _.extend({}, attributes,
-      attrs);
+    if (attrs && wait) {
+      this.attributes = _.extend({}, attributes,
+        attrs);
+    }
 
     var method = this.isNew() ? 'create' : (options.patch ?
       'patch' :
       'update');
-    if (method === 'patch' && !options.attrs) options.attrs =
-      attrs;
+    if (method === 'patch' && !options.attrs) {
+      options.attrs =
+        attrs;
+    }
     var xhr = this.sync(method, this, options);
 
     // Restore attributes.
@@ -875,11 +916,17 @@ _.extend(Model.prototype, Events, {
     };
 
     options.success = function (resp) {
-      if (wait) destroy();
-      if (success) success.call(options.context, model, resp,
-        options);
-      if (!model.isNew()) model.trigger('sync', model, resp,
-        options);
+      if (wait) {
+        destroy();
+      }
+      if (success) {
+        success.call(options.context, model, resp,
+          options);
+      }
+      if (!model.isNew()) {
+        model.trigger('sync', model, resp,
+          options);
+      }
     };
 
     var xhr = false;
@@ -889,7 +936,9 @@ _.extend(Model.prototype, Events, {
       wrapError(this, options);
       xhr = this.sync('delete', this, options);
     }
-    if (!wait) destroy();
+    if (!wait) {
+      destroy();
+    }
     return xhr;
   },
 
@@ -932,12 +981,16 @@ _.extend(Model.prototype, Events, {
   // Run validation against the next complete set of model attributes,
   // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
   _validate: function (attrs, options) {
-    if (!options.validate || !this.validate) return true;
+    if (!options.validate || !this.validate) {
+      return true;
+    }
     attrs = _.extend({}, this.attributes, attrs);
     var error = this.validationError = this.validate(attrs,
         options) ||
       null;
-    if (!error) return true;
+    if (!error) {
+      return true;
+    }
     this.trigger('invalid', this, error, _.extend(options, {
       validationError: error
     }));
@@ -1329,9 +1382,11 @@ _.extend(Collection.prototype, Events, {
     options = options || {};
 
     var length = comparator.length;
-    if (_.isFunction(comparator)) comparator = _.bind(
-      comparator,
-      this);
+    if (_.isFunction(comparator)) {
+      comparator = _.bind(
+        comparator,
+        this);
+    }
 
     // Run sort based on type of `comparator`.
     if (length === 1 || _.isString(comparator)) {
@@ -1702,12 +1757,16 @@ _.extend(View.prototype, Events, {
   // Omitting the selector binds the event to `this.el`.
   delegateEvents: function (events) {
     events || (events = _.result(this, 'events'));
-    if (!events) return this;
+    if (!events) {
+      return this;
+    }
     this.undelegateEvents();
     for (var key in events) {
       var method = events[key];
       if (!_.isFunction(method)) method = this[method];
-      if (!method) continue;
+      if (!method) {
+        continue;
+      }
       var match = key.match(delegateEventSplitter);
       this.delegate(match[1], match[2], _.bind(method, this));
     }
@@ -1727,7 +1786,9 @@ _.extend(View.prototype, Events, {
   // You usually don't need to use this, but may wish to if you have multiple
   // Backbone views attached to the same DOM element.
   undelegateEvents: function () {
-    if (this.$el) this.$el.off('.delegateEvents' + this.cid);
+    if (this.$el) {
+      this.$el.off('.delegateEvents' + this.cid);
+    }
     return this;
   },
 
@@ -1753,9 +1814,13 @@ _.extend(View.prototype, Events, {
   _ensureElement: function () {
     if (!this.el) {
       var attrs = _.extend({}, _.result(this, 'attributes'));
-      if (this.id) attrs.id = _.result(this, 'id');
-      if (this.className) attrs['class'] = _.result(this,
-        'className');
+      if (this.id) {
+        attrs.id = _.result(this, 'id');
+      }
+      if (this.className) {
+        attrs['class'] = _.result(this,
+          'className');
+      }
       this.setElement(this._createElement(_.result(this,
         'tagName')));
       this._setAttributes(attrs);
@@ -1780,7 +1845,9 @@ _.extend(View.prototype, Events, {
 var Router = function (options) {
   options = options || {};
   this.preinitialize.apply(this, arguments);
-  if (options.routes) this.routes = options.routes;
+  if (options.routes) {
+    this.routes = options.routes;
+  }
   this._bindRoutes();
   this.initialize.apply(this, arguments);
 };
@@ -1810,12 +1877,16 @@ _.extend(Router.prototype, Events, {
   //     });
   //
   route: function (route, name, callback) {
-    if (!_.isRegExp(route)) route = this._routeToRegExp(route);
+    if (!_.isRegExp(route)) {
+      route = this._routeToRegExp(route);
+    }
     if (_.isFunction(name)) {
       callback = name;
       name = '';
     }
-    if (!callback) callback = this[name];
+    if (!callback) {
+      callback = this[name];
+    }
     var router = this;
     Backbone$1.history.route(route, function (fragment) {
       var args = router._extractParameters(route, fragment);
@@ -1832,7 +1903,9 @@ _.extend(Router.prototype, Events, {
   // Execute a route handler with the provided parameters.  This is an
   // excellent place to do pre-route setup or post-route cleanup.
   execute: function (callback, args, name) {
-    if (callback) callback.apply(this, args);
+    if (callback) {
+      callback.apply(this, args);
+    }
   },
 
   // Simple proxy to `Backbone.history` to save a fragment into the history.
@@ -1872,7 +1945,9 @@ _.extend(Router.prototype, Events, {
     var params = route.exec(fragment).slice(1);
     return _.map(params, function (param, i) {
       // Don't decode the search params.
-      if (i === params.length - 1) return param || null;
+      if (i === params.length - 1) {
+        return param || null;
+      }
       return param ? decodeURIComponent(param) : null;
     });
   }

@@ -15,7 +15,9 @@ import {
 var Router = function (options) {
   options = options || {};
   this.preinitialize.apply(this, arguments);
-  if (options.routes) this.routes = options.routes;
+  if (options.routes) {
+    this.routes = options.routes;
+  }
   this._bindRoutes();
   this.initialize.apply(this, arguments);
 };
@@ -45,12 +47,16 @@ _.extend(Router.prototype, Events, {
   //     });
   //
   route: function (route, name, callback) {
-    if (!_.isRegExp(route)) route = this._routeToRegExp(route);
+    if (!_.isRegExp(route)) {
+      route = this._routeToRegExp(route);
+    }
     if (_.isFunction(name)) {
       callback = name;
       name = '';
     }
-    if (!callback) callback = this[name];
+    if (!callback) {
+      callback = this[name];
+    }
     var router = this;
     Backbone.history.route(route, function (fragment) {
       var args = router._extractParameters(route, fragment);
@@ -67,7 +73,9 @@ _.extend(Router.prototype, Events, {
   // Execute a route handler with the provided parameters.  This is an
   // excellent place to do pre-route setup or post-route cleanup.
   execute: function (callback, args, name) {
-    if (callback) callback.apply(this, args);
+    if (callback) {
+      callback.apply(this, args);
+    }
   },
 
   // Simple proxy to `Backbone.history` to save a fragment into the history.
@@ -107,7 +115,9 @@ _.extend(Router.prototype, Events, {
     var params = route.exec(fragment).slice(1);
     return _.map(params, function (param, i) {
       // Don't decode the search params.
-      if (i === params.length - 1) return param || null;
+      if (i === params.length - 1) {
+        return param || null;
+      }
       return param ? decodeURIComponent(param) : null;
     });
   }
