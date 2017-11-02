@@ -29,15 +29,21 @@ var slice = Array.prototype.slice;
 // If a `comparator` is specified, the Collection will maintain
 // its models in sort order, as they're added and removed.
 var Collection = function (models, options) {
-  options || (options = {});
+  options = options || {};
   this.preinitialize.apply(this, arguments);
-  if (options.model) this.model = options.model;
-  if (options.comparator !== void 0) this.comparator = options.comparator;
+  if (options.model) {
+    this.model = options.model;
+  }
+  if (options.comparator !== void 0) {
+    this.comparator = options.comparator;
+  }
   this._reset();
   this.initialize.apply(this, arguments);
-  if (models) this.reset(models, _.extend({
-    silent: true
-  }, options));
+  if (models) {
+    this.reset(models, _.extend({
+      silent: true
+    }, options));
+  }
 };
 
 // Default options for `Collection#set`.
@@ -57,10 +63,15 @@ var splice = function (array, insert, at) {
   var tail = Array(array.length - at);
   var length = insert.length;
   var i;
-  for (i = 0; i < tail.length; i++) tail[i] = array[i + at];
-  for (i = 0; i < length; i++) array[i + at] = insert[i];
-  for (i = 0; i < tail.length; i++) array[i + length + at] = tail[
-    i];
+  for (i = 0; i < tail.length; i++) {
+    tail[i] = array[i + at];
+  }
+  for (i = 0; i < length; i++) {
+    array[i + at] = insert[i];
+  }
+  for (i = 0; i < tail.length; i++) {
+    array[i + length + at] = tail[i];
+  }
 };
 
 // Define the Collection's inheritable methods.
@@ -122,7 +133,9 @@ _.extend(Collection.prototype, Events, {
   // already exist in the collection, as necessary. Similar to **Model#set**,
   // the core operation for updating the data contained by the collection.
   set: function (models, options) {
-    if (models == null) return;
+    if (models == null) {
+      return;
+    }
 
     options = _.extend({}, setOptions, options);
     if (options.parse && !this._isModel(models)) {
@@ -133,9 +146,15 @@ _.extend(Collection.prototype, Events, {
     models = singular ? [models] : models.slice();
 
     var at = options.at;
-    if (at != null) at = +at;
-    if (at > this.length) at = this.length;
-    if (at < 0) at += this.length + 1;
+    if (at != null) {
+      at = +at;
+    }
+    if (at > this.length) {
+      at = this.length;
+    }
+    if (at < 0) {
+      at += this.length + 1;
+    }
 
     var set = [];
     var toAdd = [];
@@ -166,12 +185,16 @@ _.extend(Collection.prototype, Events, {
         if (merge && model !== existing) {
           var attrs = this._isModel(model) ? model.attributes :
             model;
-          if (options.parse) attrs = existing.parse(attrs,
-            options);
+          if (options.parse) {
+            attrs = existing.parse(attrs,
+              options);
+          }
           existing.set(attrs, options);
           toMerge.push(existing);
-          if (sortable && !sort) sort = existing.hasChanged(
-            sortAttr);
+          if (sortable && !sort) {
+            sort = existing.hasChanged(
+              sortAttr);
+          }
         }
         if (!modelMap[existing.cid]) {
           modelMap[existing.cid] = true;
@@ -195,9 +218,13 @@ _.extend(Collection.prototype, Events, {
     if (remove) {
       for (i = 0; i < this.length; i++) {
         model = this.models[i];
-        if (!modelMap[model.cid]) toRemove.push(model);
+        if (!modelMap[model.cid]) {
+          toRemove.push(model);
+        }
       }
-      if (toRemove.length) this._removeModels(toRemove, options);
+      if (toRemove.length) {
+        this._removeModels(toRemove, options);
+      }
     }
 
     // See if sorting is needed, update `length` and splice in new models.
@@ -212,25 +239,33 @@ _.extend(Collection.prototype, Events, {
       splice(this.models, set, 0);
       this.length = this.models.length;
     } else if (toAdd.length) {
-      if (sortable) sort = true;
+      if (sortable) {
+        sort = true;
+      }
       splice(this.models, toAdd, at == null ? this.length : at);
       this.length = this.models.length;
     }
 
     // Silently sort the collection if appropriate.
-    if (sort) this.sort({
-      silent: true
-    });
+    if (sort) {
+      this.sort({
+        silent: true
+      });
+    }
 
     // Unless silenced, it's time to fire all appropriate add/sort/update events.
     if (!options.silent) {
       for (i = 0; i < toAdd.length; i++) {
-        if (at != null) options.index = at + i;
+        if (at != null) {
+          options.index = at + i;
+        }
         model = toAdd[i];
         model.trigger('add', model, this, options);
       }
-      if (sort || orderChanged) this.trigger('sort', this,
-        options);
+      if (sort || orderChanged) {
+        this.trigger('sort', this,
+          options);
+      }
       if (toAdd.length || toRemove.length || toMerge.length) {
         options.changes = {
           added: toAdd,
@@ -259,7 +294,9 @@ _.extend(Collection.prototype, Events, {
     models = this.add(models, _.extend({
       silent: true
     }, options));
-    if (!options.silent) this.trigger('reset', this, options);
+    if (!options.silent) {
+      this.trigger('reset', this, options);
+    }
     return models;
   },
 
@@ -297,7 +334,9 @@ _.extend(Collection.prototype, Events, {
   // Get a model from the set by id, cid, model object with id or cid
   // properties, or an attributes object that is transformed through modelId.
   get: function (obj) {
-    if (obj == null) return void 0;
+    if (obj == null) {
+      return void 0;
+    }
     return this._byId[obj] ||
       this._byId[this.modelId(obj.attributes || obj)] ||
       obj.cid && this._byId[obj.cid];
@@ -310,7 +349,9 @@ _.extend(Collection.prototype, Events, {
 
   // Get the model at the given index.
   at: function (index) {
-    if (index < 0) index += this.length;
+    if (index < 0) {
+      index += this.length;
+    }
     return this.models[index];
   },
 
@@ -331,9 +372,11 @@ _.extend(Collection.prototype, Events, {
   // is added.
   sort: function (options) {
     var comparator = this.comparator;
-    if (!comparator) throw new Error(
-      'Cannot sort a set without a comparator');
-    options || (options = {});
+    if (!comparator) {
+      throw new Error(
+        'Cannot sort a set without a comparator');
+    }
+    options = options || {};
 
     var length = comparator.length;
     if (_.isFunction(comparator)) comparator = _.bind(
@@ -346,7 +389,9 @@ _.extend(Collection.prototype, Events, {
     } else {
       this.models.sort(comparator);
     }
-    if (!options.silent) this.trigger('sort', this, options);
+    if (!options.silent) {
+      this.trigger('sort', this, options);
+    }
     return this;
   },
 
@@ -367,9 +412,11 @@ _.extend(Collection.prototype, Events, {
     options.success = function (resp) {
       var method = options.reset ? 'reset' : 'set';
       collection[method](resp, options);
-      if (success) success.call(options.context, collection,
-        resp,
-        options);
+      if (success) {
+        success.call(options.context, collection,
+          resp,
+          options);
+      }
       collection.trigger('sync', collection, resp, options);
     };
     wrapError(this, options);
@@ -383,14 +430,22 @@ _.extend(Collection.prototype, Events, {
     options = options ? _.clone(options) : {};
     var wait = options.wait;
     model = this._prepareModel(model, options);
-    if (!model) return false;
-    if (!wait) this.add(model, options);
+    if (!model) {
+      return false;
+    }
+    if (!wait) {
+      this.add(model, options);
+    }
     var collection = this;
     var success = options.success;
     options.success = function (m, resp, callbackOpts) {
-      if (wait) collection.add(m, callbackOpts);
-      if (success) success.call(callbackOpts.context, m, resp,
-        callbackOpts);
+      if (wait) {
+        collection.add(m, callbackOpts);
+      }
+      if (success) {
+        success.call(callbackOpts.context, m, resp,
+          callbackOpts);
+      }
     };
     model.save(null, options);
     return model;
@@ -427,13 +482,17 @@ _.extend(Collection.prototype, Events, {
   // collection.
   _prepareModel: function (attrs, options) {
     if (this._isModel(attrs)) {
-      if (!attrs.collection) attrs.collection = this;
+      if (!attrs.collection) {
+        attrs.collection = this;
+      }
       return attrs;
     }
     options = options ? _.clone(options) : {};
     options.collection = this;
     var model = new this.model(attrs, options);
-    if (!model.validationError) return model;
+    if (!model.validationError) {
+      return model;
+    }
     this.trigger('invalid', this, model.validationError, options);
     return false;
   },
@@ -443,7 +502,9 @@ _.extend(Collection.prototype, Events, {
     var removed = [];
     for (var i = 0; i < models.length; i++) {
       var model = this.get(models[i]);
-      if (!model) continue;
+      if (!model) {
+        continue;
+      }
 
       var index = this.indexOf(model);
       this.models.splice(index, 1);
@@ -453,7 +514,9 @@ _.extend(Collection.prototype, Events, {
       // infinite loop. #3693
       delete this._byId[model.cid];
       var id = this.modelId(model.attributes);
-      if (id != null) delete this._byId[id];
+      if (id != null) {
+        delete this._byId[id];
+      }
 
       if (!options.silent) {
         options.index = index;
@@ -476,7 +539,9 @@ _.extend(Collection.prototype, Events, {
   _addReference: function (model, options) {
     this._byId[model.cid] = model;
     var id = this.modelId(model.attributes);
-    if (id != null) this._byId[id] = model;
+    if (id != null) {
+      this._byId[id] = model;
+    }
     model.on('all', this._onModelEvent, this);
   },
 
@@ -484,8 +549,12 @@ _.extend(Collection.prototype, Events, {
   _removeReference: function (model, options) {
     delete this._byId[model.cid];
     var id = this.modelId(model.attributes);
-    if (id != null) delete this._byId[id];
-    if (this === model.collection) delete model.collection;
+    if (id != null) {
+      delete this._byId[id];
+    }
+    if (this === model.collection) {
+      delete model.collection;
+    }
     model.off('all', this._onModelEvent, this);
   },
 
@@ -496,14 +565,22 @@ _.extend(Collection.prototype, Events, {
   _onModelEvent: function (event, model, collection, options) {
     if (model) {
       if ((event === 'add' || event === 'remove') && collection !==
-        this) return;
-      if (event === 'destroy') this.remove(model, options);
+        this) {
+        return;
+      }
+      if (event === 'destroy') {
+        this.remove(model, options);
+      }
       if (event === 'change') {
         var prevId = this.modelId(model.previousAttributes());
         var id = this.modelId(model.attributes);
         if (prevId !== id) {
-          if (prevId != null) delete this._byId[prevId];
-          if (id != null) this._byId[id] = model;
+          if (prevId != null) {
+            delete this._byId[prevId];
+          }
+          if (id != null) {
+            this._byId[id] = model;
+          }
         }
       }
     }

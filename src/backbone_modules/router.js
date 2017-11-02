@@ -1,15 +1,19 @@
 import $ from 'jquery';
 import _ from 'underscore';
-import {Backbone} from './core.js';
-import {Events} from './events.js';
+import {
+  Backbone
+} from './core.js';
+import {
+  Events
+} from './events.js';
 
 // Backbone.Router
 // ---------------
 
 // Routers map faux-URLs to actions, and fire events when routes are
 // matched. Creating a new one sets its `routes` hash, if not set statically.
-var Router =  function (options) {
-  options || (options = {});
+var Router = function (options) {
+  options = options || {};
   this.preinitialize.apply(this, arguments);
   if (options.routes) this.routes = options.routes;
   this._bindRoutes();
@@ -110,7 +114,6 @@ _.extend(Router.prototype, Events, {
 
 });
 
-
-
-
-export {Router};
+export {
+  Router
+};

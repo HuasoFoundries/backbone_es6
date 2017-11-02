@@ -252,9 +252,9 @@ var eventsApi = function (iteratee, events, name, callback, opts) {
     names;
   if (name && typeof name === 'object') {
     // Handle event maps.
-    if (callback !== void 0 && 'context' in opts && opts.context ===
-      void 0)
+    if (callback !== void 0 && 'context' in opts && opts.context === void 0) {
       opts.context = callback;
+    }
     for (names = _.keys(name); i < names.length; i++) {
       events = eventsApi(iteratee, events, names[i], name[names[i]],
         opts);
@@ -271,55 +271,6 @@ var eventsApi = function (iteratee, events, name, callback, opts) {
   return events;
 };
 
-// Bind an event to a `callback` function. Passing `"all"` will bind
-// the callback to all events fired.
-Events.on = function (name, callback, context) {
-  return internalOn(this, name, callback, context);
-};
-
-// Guard the `listening` argument from the public API.
-var internalOn = function (obj, name, callback, context, listening) {
-  obj._events = eventsApi(onApi, obj._events || {}, name, callback, {
-    context: context,
-    ctx: obj,
-    listening: listening
-  });
-
-  if (listening) {
-    var listeners = obj._listeners || (obj._listeners = {});
-    listeners[listening.id] = listening;
-  }
-
-  return obj;
-};
-
-// Inversion-of-control versions of `on`. Tell *this* object to listen to
-// an event in another object... keeping track of what it's listening to
-// for easier unbinding later.
-Events.listenTo = function (obj, name, callback) {
-  if (!obj) return this;
-  var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
-  var listeningTo = this._listeningTo || (this._listeningTo = {});
-  var listening = listeningTo[id];
-
-  // This object is not listening to any other events on `obj` yet.
-  // Setup the necessary references to track the listening callbacks.
-  if (!listening) {
-    var thisId = this._listenId || (this._listenId = _.uniqueId('l'));
-    listening = listeningTo[id] = {
-      obj: obj,
-      objId: id,
-      id: thisId,
-      listeningTo: listeningTo,
-      count: 0
-    };
-  }
-
-  // Bind callbacks on obj, and keep track of them on listening.
-  internalOn(obj, name, callback, this, listening);
-  return this;
-};
-
 // The reducing API that adds a callback to the `events` object.
 var onApi = function (events, name, callback, options) {
   if (callback) {
@@ -327,7 +278,9 @@ var onApi = function (events, name, callback, options) {
     var context = options.context,
       ctx = options.ctx,
       listening = options.listening;
-    if (listening) listening.count++;
+    if (listening) {
+      listening.count++;
+    }
 
     handlers.push({
       callback: callback,
@@ -339,43 +292,11 @@ var onApi = function (events, name, callback, options) {
   return events;
 };
 
-// Remove one or many callbacks. If `context` is null, removes all
-// callbacks with that function. If `callback` is null, removes all
-// callbacks for the event. If `name` is null, removes all bound
-// callbacks for all events.
-Events.off = function (name, callback, context) {
-  if (!this._events) return this;
-  this._events = eventsApi(offApi, this._events, name, callback, {
-    context: context,
-    listeners: this._listeners
-  });
-  return this;
-};
-
-// Tell this object to stop listening to either specific events ... or
-// to every object it's currently listening to.
-Events.stopListening = function (obj, name, callback) {
-  var listeningTo = this._listeningTo;
-  if (!listeningTo) return this;
-
-  var ids = obj ? [obj._listenId] : _.keys(listeningTo);
-
-  for (var i = 0; i < ids.length; i++) {
-    var listening = listeningTo[ids[i]];
-
-    // If listening doesn't exist, this object is not currently
-    // listening to obj. Break out early.
-    if (!listening) break;
-
-    listening.obj.off(name, callback, this);
-  }
-
-  return this;
-};
-
 // The reducing API that removes a callback from the `events` object.
 var offApi = function (events, name, callback, options) {
-  if (!events) return;
+  if (!events) {
+    return;
+  }
 
   var i = 0,
     listening;
@@ -399,7 +320,9 @@ var offApi = function (events, name, callback, options) {
     var handlers = events[name];
 
     // Bail out if there are no events stored.
-    if (!handlers) break;
+    if (!handlers) {
+      break;
+    }
 
     // Replace events if there are any remaining.  Otherwise, clean up.
     var remaining = [];
@@ -430,24 +353,20 @@ var offApi = function (events, name, callback, options) {
   return events;
 };
 
-// Bind an event to only be triggered a single time. After the first time
-// the callback is invoked, its listener will be removed. If multiple events
-// are passed in using the space-separated syntax, the handler will fire
-// once for each event, not once for a combination of all events.
-Events.once = function (name, callback, context) {
-  // Map the event into a `{event: once}` object.
-  var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off,
-    this));
-  if (typeof name === 'string' && context == null) callback = void 0;
-  return this.on(events, callback, context);
-};
+// Guard the `listening` argument from the public API.
+var internalOn = function (obj, name, callback, context, listening) {
+  obj._events = eventsApi(onApi, obj._events || {}, name, callback, {
+    context: context,
+    ctx: obj,
+    listening: listening
+  });
 
-// Inversion-of-control versions of `once`.
-Events.listenToOnce = function (obj, name, callback) {
-  // Map the event into a `{event: once}` object.
-  var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening,
-    this, obj));
-  return this.listenTo(obj, events);
+  if (listening) {
+    var listeners = obj._listeners || (obj._listeners = {});
+    listeners[listening.id] = listening;
+  }
+
+  return obj;
 };
 
 // Reduces the event callbacks into a map of `{event: onceWrapper}`.
@@ -463,29 +382,20 @@ var onceMap = function (map, name, callback, offer) {
   return map;
 };
 
-// Trigger one or many events, firing all bound callbacks. Callbacks are
-// passed the same arguments as `trigger` is, apart from the event name
-// (unless you're listening on `"all"`, which will cause your callback to
-// receive the true name of the event as the first argument).
-Events.trigger = function (name) {
-  if (!this._events) return this;
-
-  var length = Math.max(0, arguments.length - 1);
-  var args = Array(length);
-  for (var i = 0; i < length; i++) args[i] = arguments[i + 1];
-
-  eventsApi(triggerApi, this._events, name, void 0, args);
-  return this;
-};
-
 // Handles triggering the appropriate event callbacks.
 var triggerApi = function (objEvents, name, callback, args) {
   if (objEvents) {
     var events = objEvents[name];
     var allEvents = objEvents.all;
-    if (events && allEvents) allEvents = allEvents.slice();
-    if (events) triggerEvents(events, args);
-    if (allEvents) triggerEvents(allEvents, [name].concat(args));
+    if (events && allEvents) {
+      allEvents = allEvents.slice();
+    }
+    if (events) {
+      triggerEvents(events, args);
+    }
+    if (allEvents) {
+      triggerEvents(allEvents, [name].concat(args));
+    }
   }
   return objEvents;
 };
@@ -501,24 +411,147 @@ var triggerEvents = function (events, args) {
     a3 = args[2];
   switch (args.length) {
   case 0:
-    while (++i < l)(ev = events[i]).callback.call(ev.ctx);
+    while (++i < l) {
+      (ev = events[i]).callback.call(ev.ctx);
+    }
     return;
   case 1:
-    while (++i < l)(ev = events[i]).callback.call(ev.ctx, a1);
+    while (++i < l) {
+      (ev = events[i]).callback.call(ev.ctx, a1);
+    }
     return;
   case 2:
-    while (++i < l)(ev = events[i]).callback.call(ev.ctx, a1,
-      a2);
+    while (++i < l) {
+      (ev = events[i]).callback.call(ev.ctx, a1, a2);
+    }
     return;
   case 3:
-    while (++i < l)(ev = events[i]).callback.call(ev.ctx, a1,
-      a2, a3);
+    while (++i < l) {
+      (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+    }
     return;
   default:
-    while (++i < l)(ev = events[i]).callback.apply(ev.ctx,
-      args);
+    while (++i < l) {
+      (ev = events[i]).callback.apply(ev.ctx, args);
+    }
     return;
   }
+};
+
+// Bind an event to a `callback` function. Passing `"all"` will bind
+// the callback to all events fired.
+Events.on = function (name, callback, context) {
+  return internalOn(this, name, callback, context);
+};
+
+// Inversion-of-control versions of `on`. Tell *this* object to listen to
+// an event in another object... keeping track of what it's listening to
+// for easier unbinding later.
+Events.listenTo = function (obj, name, callback) {
+  if (!obj) {
+    return this;
+  }
+  var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
+  var listeningTo = this._listeningTo || (this._listeningTo = {});
+  var listening = listeningTo[id];
+
+  // This object is not listening to any other events on `obj` yet.
+  // Setup the necessary references to track the listening callbacks.
+  if (!listening) {
+    var thisId = this._listenId || (this._listenId = _.uniqueId('l'));
+    listening = listeningTo[id] = {
+      obj: obj,
+      objId: id,
+      id: thisId,
+      listeningTo: listeningTo,
+      count: 0
+    };
+  }
+
+  // Bind callbacks on obj, and keep track of them on listening.
+  internalOn(obj, name, callback, this, listening);
+  return this;
+};
+
+// Remove one or many callbacks. If `context` is null, removes all
+// callbacks with that function. If `callback` is null, removes all
+// callbacks for the event. If `name` is null, removes all bound
+// callbacks for all events.
+Events.off = function (name, callback, context) {
+  if (!this._events) {
+    return this;
+  }
+  this._events = eventsApi(offApi, this._events, name, callback, {
+    context: context,
+    listeners: this._listeners
+  });
+  return this;
+};
+
+// Tell this object to stop listening to either specific events ... or
+// to every object it's currently listening to.
+Events.stopListening = function (obj, name, callback) {
+  var listeningTo = this._listeningTo;
+  if (!listeningTo) {
+    return this;
+  }
+
+  var ids = obj ? [obj._listenId] : _.keys(listeningTo);
+
+  for (var i = 0; i < ids.length; i++) {
+    var listening = listeningTo[ids[i]];
+
+    // If listening doesn't exist, this object is not currently
+    // listening to obj. Break out early.
+    if (!listening) {
+      break;
+    }
+
+    listening.obj.off(name, callback, this);
+  }
+
+  return this;
+};
+
+// Bind an event to only be triggered a single time. After the first time
+// the callback is invoked, its listener will be removed. If multiple events
+// are passed in using the space-separated syntax, the handler will fire
+// once for each event, not once for a combination of all events.
+Events.once = function (name, callback, context) {
+  // Map the event into a `{event: once}` object.
+  var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off,
+    this));
+  if (typeof name === 'string' && context == null) {
+    callback = void 0;
+  }
+  return this.on(events, callback, context);
+};
+
+// Inversion-of-control versions of `once`.
+Events.listenToOnce = function (obj, name, callback) {
+  // Map the event into a `{event: once}` object.
+  var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening,
+    this, obj));
+  return this.listenTo(obj, events);
+};
+
+// Trigger one or many events, firing all bound callbacks. Callbacks are
+// passed the same arguments as `trigger` is, apart from the event name
+// (unless you're listening on `"all"`, which will cause your callback to
+// receive the true name of the event as the first argument).
+Events.trigger = function (name) {
+  if (!this._events) {
+    return this;
+  }
+
+  var length = Math.max(0, arguments.length - 1);
+  var args = Array(length);
+  for (var i = 0; i < length; i++) {
+    args[i] = arguments[i + 1];
+  }
+
+  eventsApi(triggerApi, this._events, name, void 0, args);
+  return this;
 };
 
 // Aliases for backwards compatibility.
@@ -537,7 +570,7 @@ Events.unbind = Events.off;
 // is automatically generated and assigned for you.
 var Model = function (attributes, options) {
   var attrs = attributes || {};
-  options || (options = {});
+  options = options || {};
   this.preinitialize.apply(this, arguments);
   this.cid = _.uniqueId(this.cidPrefix);
   this.attributes = {};
@@ -622,7 +655,7 @@ _.extend(Model.prototype, Events, {
       (attrs = {})[key] = val;
     }
 
-    options || (options = {});
+    options = options || {};
 
     // Run validation.
     if (!this._validate(attrs, options)) return false;
@@ -946,15 +979,21 @@ var slice$1 = Array.prototype.slice;
 // If a `comparator` is specified, the Collection will maintain
 // its models in sort order, as they're added and removed.
 var Collection = function (models, options) {
-  options || (options = {});
+  options = options || {};
   this.preinitialize.apply(this, arguments);
-  if (options.model) this.model = options.model;
-  if (options.comparator !== void 0) this.comparator = options.comparator;
+  if (options.model) {
+    this.model = options.model;
+  }
+  if (options.comparator !== void 0) {
+    this.comparator = options.comparator;
+  }
   this._reset();
   this.initialize.apply(this, arguments);
-  if (models) this.reset(models, _.extend({
-    silent: true
-  }, options));
+  if (models) {
+    this.reset(models, _.extend({
+      silent: true
+    }, options));
+  }
 };
 
 // Default options for `Collection#set`.
@@ -974,10 +1013,15 @@ var splice = function (array, insert, at) {
   var tail = Array(array.length - at);
   var length = insert.length;
   var i;
-  for (i = 0; i < tail.length; i++) tail[i] = array[i + at];
-  for (i = 0; i < length; i++) array[i + at] = insert[i];
-  for (i = 0; i < tail.length; i++) array[i + length + at] = tail[
-    i];
+  for (i = 0; i < tail.length; i++) {
+    tail[i] = array[i + at];
+  }
+  for (i = 0; i < length; i++) {
+    array[i + at] = insert[i];
+  }
+  for (i = 0; i < tail.length; i++) {
+    array[i + length + at] = tail[i];
+  }
 };
 
 // Define the Collection's inheritable methods.
@@ -1039,7 +1083,9 @@ _.extend(Collection.prototype, Events, {
   // already exist in the collection, as necessary. Similar to **Model#set**,
   // the core operation for updating the data contained by the collection.
   set: function (models, options) {
-    if (models == null) return;
+    if (models == null) {
+      return;
+    }
 
     options = _.extend({}, setOptions, options);
     if (options.parse && !this._isModel(models)) {
@@ -1050,9 +1096,15 @@ _.extend(Collection.prototype, Events, {
     models = singular ? [models] : models.slice();
 
     var at = options.at;
-    if (at != null) at = +at;
-    if (at > this.length) at = this.length;
-    if (at < 0) at += this.length + 1;
+    if (at != null) {
+      at = +at;
+    }
+    if (at > this.length) {
+      at = this.length;
+    }
+    if (at < 0) {
+      at += this.length + 1;
+    }
 
     var set = [];
     var toAdd = [];
@@ -1083,12 +1135,16 @@ _.extend(Collection.prototype, Events, {
         if (merge && model !== existing) {
           var attrs = this._isModel(model) ? model.attributes :
             model;
-          if (options.parse) attrs = existing.parse(attrs,
-            options);
+          if (options.parse) {
+            attrs = existing.parse(attrs,
+              options);
+          }
           existing.set(attrs, options);
           toMerge.push(existing);
-          if (sortable && !sort) sort = existing.hasChanged(
-            sortAttr);
+          if (sortable && !sort) {
+            sort = existing.hasChanged(
+              sortAttr);
+          }
         }
         if (!modelMap[existing.cid]) {
           modelMap[existing.cid] = true;
@@ -1112,9 +1168,13 @@ _.extend(Collection.prototype, Events, {
     if (remove) {
       for (i = 0; i < this.length; i++) {
         model = this.models[i];
-        if (!modelMap[model.cid]) toRemove.push(model);
+        if (!modelMap[model.cid]) {
+          toRemove.push(model);
+        }
       }
-      if (toRemove.length) this._removeModels(toRemove, options);
+      if (toRemove.length) {
+        this._removeModels(toRemove, options);
+      }
     }
 
     // See if sorting is needed, update `length` and splice in new models.
@@ -1129,25 +1189,33 @@ _.extend(Collection.prototype, Events, {
       splice(this.models, set, 0);
       this.length = this.models.length;
     } else if (toAdd.length) {
-      if (sortable) sort = true;
+      if (sortable) {
+        sort = true;
+      }
       splice(this.models, toAdd, at == null ? this.length : at);
       this.length = this.models.length;
     }
 
     // Silently sort the collection if appropriate.
-    if (sort) this.sort({
-      silent: true
-    });
+    if (sort) {
+      this.sort({
+        silent: true
+      });
+    }
 
     // Unless silenced, it's time to fire all appropriate add/sort/update events.
     if (!options.silent) {
       for (i = 0; i < toAdd.length; i++) {
-        if (at != null) options.index = at + i;
+        if (at != null) {
+          options.index = at + i;
+        }
         model = toAdd[i];
         model.trigger('add', model, this, options);
       }
-      if (sort || orderChanged) this.trigger('sort', this,
-        options);
+      if (sort || orderChanged) {
+        this.trigger('sort', this,
+          options);
+      }
       if (toAdd.length || toRemove.length || toMerge.length) {
         options.changes = {
           added: toAdd,
@@ -1176,7 +1244,9 @@ _.extend(Collection.prototype, Events, {
     models = this.add(models, _.extend({
       silent: true
     }, options));
-    if (!options.silent) this.trigger('reset', this, options);
+    if (!options.silent) {
+      this.trigger('reset', this, options);
+    }
     return models;
   },
 
@@ -1214,7 +1284,9 @@ _.extend(Collection.prototype, Events, {
   // Get a model from the set by id, cid, model object with id or cid
   // properties, or an attributes object that is transformed through modelId.
   get: function (obj) {
-    if (obj == null) return void 0;
+    if (obj == null) {
+      return void 0;
+    }
     return this._byId[obj] ||
       this._byId[this.modelId(obj.attributes || obj)] ||
       obj.cid && this._byId[obj.cid];
@@ -1227,7 +1299,9 @@ _.extend(Collection.prototype, Events, {
 
   // Get the model at the given index.
   at: function (index) {
-    if (index < 0) index += this.length;
+    if (index < 0) {
+      index += this.length;
+    }
     return this.models[index];
   },
 
@@ -1248,9 +1322,11 @@ _.extend(Collection.prototype, Events, {
   // is added.
   sort: function (options) {
     var comparator = this.comparator;
-    if (!comparator) throw new Error(
-      'Cannot sort a set without a comparator');
-    options || (options = {});
+    if (!comparator) {
+      throw new Error(
+        'Cannot sort a set without a comparator');
+    }
+    options = options || {};
 
     var length = comparator.length;
     if (_.isFunction(comparator)) comparator = _.bind(
@@ -1263,7 +1339,9 @@ _.extend(Collection.prototype, Events, {
     } else {
       this.models.sort(comparator);
     }
-    if (!options.silent) this.trigger('sort', this, options);
+    if (!options.silent) {
+      this.trigger('sort', this, options);
+    }
     return this;
   },
 
@@ -1284,9 +1362,11 @@ _.extend(Collection.prototype, Events, {
     options.success = function (resp) {
       var method = options.reset ? 'reset' : 'set';
       collection[method](resp, options);
-      if (success) success.call(options.context, collection,
-        resp,
-        options);
+      if (success) {
+        success.call(options.context, collection,
+          resp,
+          options);
+      }
       collection.trigger('sync', collection, resp, options);
     };
     wrapError(this, options);
@@ -1300,14 +1380,22 @@ _.extend(Collection.prototype, Events, {
     options = options ? _.clone(options) : {};
     var wait = options.wait;
     model = this._prepareModel(model, options);
-    if (!model) return false;
-    if (!wait) this.add(model, options);
+    if (!model) {
+      return false;
+    }
+    if (!wait) {
+      this.add(model, options);
+    }
     var collection = this;
     var success = options.success;
     options.success = function (m, resp, callbackOpts) {
-      if (wait) collection.add(m, callbackOpts);
-      if (success) success.call(callbackOpts.context, m, resp,
-        callbackOpts);
+      if (wait) {
+        collection.add(m, callbackOpts);
+      }
+      if (success) {
+        success.call(callbackOpts.context, m, resp,
+          callbackOpts);
+      }
     };
     model.save(null, options);
     return model;
@@ -1344,13 +1432,17 @@ _.extend(Collection.prototype, Events, {
   // collection.
   _prepareModel: function (attrs, options) {
     if (this._isModel(attrs)) {
-      if (!attrs.collection) attrs.collection = this;
+      if (!attrs.collection) {
+        attrs.collection = this;
+      }
       return attrs;
     }
     options = options ? _.clone(options) : {};
     options.collection = this;
     var model = new this.model(attrs, options);
-    if (!model.validationError) return model;
+    if (!model.validationError) {
+      return model;
+    }
     this.trigger('invalid', this, model.validationError, options);
     return false;
   },
@@ -1360,7 +1452,9 @@ _.extend(Collection.prototype, Events, {
     var removed = [];
     for (var i = 0; i < models.length; i++) {
       var model = this.get(models[i]);
-      if (!model) continue;
+      if (!model) {
+        continue;
+      }
 
       var index = this.indexOf(model);
       this.models.splice(index, 1);
@@ -1370,7 +1464,9 @@ _.extend(Collection.prototype, Events, {
       // infinite loop. #3693
       delete this._byId[model.cid];
       var id = this.modelId(model.attributes);
-      if (id != null) delete this._byId[id];
+      if (id != null) {
+        delete this._byId[id];
+      }
 
       if (!options.silent) {
         options.index = index;
@@ -1393,7 +1489,9 @@ _.extend(Collection.prototype, Events, {
   _addReference: function (model, options) {
     this._byId[model.cid] = model;
     var id = this.modelId(model.attributes);
-    if (id != null) this._byId[id] = model;
+    if (id != null) {
+      this._byId[id] = model;
+    }
     model.on('all', this._onModelEvent, this);
   },
 
@@ -1401,8 +1499,12 @@ _.extend(Collection.prototype, Events, {
   _removeReference: function (model, options) {
     delete this._byId[model.cid];
     var id = this.modelId(model.attributes);
-    if (id != null) delete this._byId[id];
-    if (this === model.collection) delete model.collection;
+    if (id != null) {
+      delete this._byId[id];
+    }
+    if (this === model.collection) {
+      delete model.collection;
+    }
     model.off('all', this._onModelEvent, this);
   },
 
@@ -1413,14 +1515,22 @@ _.extend(Collection.prototype, Events, {
   _onModelEvent: function (event, model, collection, options) {
     if (model) {
       if ((event === 'add' || event === 'remove') && collection !==
-        this) return;
-      if (event === 'destroy') this.remove(model, options);
+        this) {
+        return;
+      }
+      if (event === 'destroy') {
+        this.remove(model, options);
+      }
       if (event === 'change') {
         var prevId = this.modelId(model.previousAttributes());
         var id = this.modelId(model.attributes);
         if (prevId !== id) {
-          if (prevId != null) delete this._byId[prevId];
-          if (id != null) this._byId[id] = model;
+          if (prevId != null) {
+            delete this._byId[prevId];
+          }
+          if (id != null) {
+            this._byId[id] = model;
+          }
         }
       }
     }
@@ -1667,8 +1777,8 @@ _.extend(View.prototype, Events, {
 
 // Routers map faux-URLs to actions, and fire events when routes are
 // matched. Creating a new one sets its `routes` hash, if not set statically.
-var Router =  function (options) {
-  options || (options = {});
+var Router = function (options) {
+  options = options || {};
   this.preinitialize.apply(this, arguments);
   if (options.routes) this.routes = options.routes;
   this._bindRoutes();
@@ -1777,7 +1887,7 @@ _.extend(Router.prototype, Events, {
 // [onhashchange](https://developer.mozilla.org/en-US/docs/DOM/window.onhashchange)
 // and URL fragments. If the browser supports neither (old IE, natch),
 // falls back to polling.
-var History =  function () {
+var History = function () {
   this.handlers = [];
   this.checkUrl = _.bind(this.checkUrl, this);
 
@@ -1865,8 +1975,9 @@ _.extend(History.prototype, Events, {
   // Start the hash change handling, returning `true` if the current URL matches
   // an existing route, and `false` otherwise.
   start: function (options) {
-    if (History.started) throw new Error(
-      'Backbone.history has already been started');
+    if (History.started) {
+      throw new Error('Backbone.history has already been started');
+    }
     History.started = true;
 
     // Figure out the initial configuration. Do we need an iframe?
@@ -1944,7 +2055,9 @@ _.extend(History.prototype, Events, {
       this._checkUrlInterval = setInterval(this.checkUrl, this.interval);
     }
 
-    if (!this.options.silent) return this.loadUrl();
+    if (!this.options.silent) {
+      return this.loadUrl();
+    }
   },
 
   // Disable Backbone.history, perhaps temporarily. Not useful in a real app,
@@ -1971,7 +2084,9 @@ _.extend(History.prototype, Events, {
     }
 
     // Some environments will throw when clearing an undefined interval.
-    if (this._checkUrlInterval) clearInterval(this._checkUrlInterval);
+    if (this._checkUrlInterval) {
+      clearInterval(this._checkUrlInterval);
+    }
     History.started = false;
   },
 
@@ -1995,8 +2110,12 @@ _.extend(History.prototype, Events, {
       current = this.getHash(this.iframe.contentWindow);
     }
 
-    if (current === this.fragment) return false;
-    if (this.iframe) this.navigate(current);
+    if (current === this.fragment) {
+      return false;
+    }
+    if (this.iframe) {
+      this.navigate(current);
+    }
     this.loadUrl();
   },
 
@@ -2023,10 +2142,14 @@ _.extend(History.prototype, Events, {
   // route callback be fired (not usually desirable), or `replace: true`, if
   // you wish to modify the current URL without adding an entry to the history.
   navigate: function (fragment, options) {
-    if (!History.started) return false;
-    if (!options || options === true) options = {
-      trigger: !!options
-    };
+    if (!History.started) {
+      return false;
+    }
+    if (!options || options === true) {
+      options = {
+        trigger: !!options
+      };
+    }
 
     // Normalize the fragment.
     fragment = this.getFragment(fragment || '');
@@ -2044,7 +2167,9 @@ _.extend(History.prototype, Events, {
     // Decode for matching.
     var decodedFragment = this.decodeFragment(fragment);
 
-    if (this.fragment === decodedFragment) return;
+    if (this.fragment === decodedFragment) {
+      return;
+    }
     this.fragment = decodedFragment;
 
     // If pushState is available, we use it to set the fragment as a real URL.
@@ -2076,7 +2201,9 @@ _.extend(History.prototype, Events, {
     } else {
       return this.location.assign(url);
     }
-    if (options.trigger) return this.loadUrl(fragment);
+    if (options.trigger) {
+      return this.loadUrl(fragment);
+    }
   },
 
   // Update the hash location, either replacing the current entry, or adding

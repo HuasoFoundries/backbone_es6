@@ -1,7 +1,11 @@
 import $ from 'jquery';
 import _ from 'underscore';
-import {Backbone} from './core.js';
-import {Events} from './events.js';
+import {
+  Backbone
+} from './core.js';
+import {
+  Events
+} from './events.js';
 
 // Backbone.History
 // ----------------
@@ -11,7 +15,7 @@ import {Events} from './events.js';
 // [onhashchange](https://developer.mozilla.org/en-US/docs/DOM/window.onhashchange)
 // and URL fragments. If the browser supports neither (old IE, natch),
 // falls back to polling.
-var History =  function () {
+var History = function () {
   this.handlers = [];
   this.checkUrl = _.bind(this.checkUrl, this);
 
@@ -99,8 +103,9 @@ _.extend(History.prototype, Events, {
   // Start the hash change handling, returning `true` if the current URL matches
   // an existing route, and `false` otherwise.
   start: function (options) {
-    if (History.started) throw new Error(
-      'Backbone.history has already been started');
+    if (History.started) {
+      throw new Error('Backbone.history has already been started');
+    }
     History.started = true;
 
     // Figure out the initial configuration. Do we need an iframe?
@@ -178,7 +183,9 @@ _.extend(History.prototype, Events, {
       this._checkUrlInterval = setInterval(this.checkUrl, this.interval);
     }
 
-    if (!this.options.silent) return this.loadUrl();
+    if (!this.options.silent) {
+      return this.loadUrl();
+    }
   },
 
   // Disable Backbone.history, perhaps temporarily. Not useful in a real app,
@@ -205,7 +212,9 @@ _.extend(History.prototype, Events, {
     }
 
     // Some environments will throw when clearing an undefined interval.
-    if (this._checkUrlInterval) clearInterval(this._checkUrlInterval);
+    if (this._checkUrlInterval) {
+      clearInterval(this._checkUrlInterval);
+    }
     History.started = false;
   },
 
@@ -229,8 +238,12 @@ _.extend(History.prototype, Events, {
       current = this.getHash(this.iframe.contentWindow);
     }
 
-    if (current === this.fragment) return false;
-    if (this.iframe) this.navigate(current);
+    if (current === this.fragment) {
+      return false;
+    }
+    if (this.iframe) {
+      this.navigate(current);
+    }
     this.loadUrl();
   },
 
@@ -257,10 +270,14 @@ _.extend(History.prototype, Events, {
   // route callback be fired (not usually desirable), or `replace: true`, if
   // you wish to modify the current URL without adding an entry to the history.
   navigate: function (fragment, options) {
-    if (!History.started) return false;
-    if (!options || options === true) options = {
-      trigger: !!options
-    };
+    if (!History.started) {
+      return false;
+    }
+    if (!options || options === true) {
+      options = {
+        trigger: !!options
+      };
+    }
 
     // Normalize the fragment.
     fragment = this.getFragment(fragment || '');
@@ -278,7 +295,9 @@ _.extend(History.prototype, Events, {
     // Decode for matching.
     var decodedFragment = this.decodeFragment(fragment);
 
-    if (this.fragment === decodedFragment) return;
+    if (this.fragment === decodedFragment) {
+      return;
+    }
     this.fragment = decodedFragment;
 
     // If pushState is available, we use it to set the fragment as a real URL.
@@ -310,7 +329,9 @@ _.extend(History.prototype, Events, {
     } else {
       return this.location.assign(url);
     }
-    if (options.trigger) return this.loadUrl(fragment);
+    if (options.trigger) {
+      return this.loadUrl(fragment);
+    }
   },
 
   // Update the hash location, either replacing the current entry, or adding
@@ -327,5 +348,6 @@ _.extend(History.prototype, Events, {
 
 });
 
-
-export {History};
+export {
+  History
+};

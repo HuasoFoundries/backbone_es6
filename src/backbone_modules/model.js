@@ -1,7 +1,14 @@
 import $ from 'jquery';
 import _ from 'underscore';
-import {Backbone,urlError,wrapError,addUnderscoreMethods} from './core.js';
-import {Events} from './events.js';
+import {
+  Backbone,
+  urlError,
+  wrapError,
+  addUnderscoreMethods
+} from './core.js';
+import {
+  Events
+} from './events.js';
 
 // Backbone.Model
 // --------------
@@ -15,7 +22,7 @@ import {Events} from './events.js';
 // is automatically generated and assigned for you.
 var Model = function (attributes, options) {
   var attrs = attributes || {};
-  options || (options = {});
+  options = options || {};
   this.preinitialize.apply(this, arguments);
   this.cid = _.uniqueId(this.cidPrefix);
   this.attributes = {};
@@ -100,7 +107,7 @@ _.extend(Model.prototype, Events, {
       (attrs = {})[key] = val;
     }
 
-    options || (options = {});
+    options = options || {};
 
     // Run validation.
     if (!this._validate(attrs, options)) return false;
@@ -407,7 +414,6 @@ var modelMethods = {
 // Mix in each Underscore method as a proxy to `Model#attributes`.
 addUnderscoreMethods(Model, modelMethods, 'attributes');
 
-
-
-
-export {Model};
+export {
+  Model
+};
