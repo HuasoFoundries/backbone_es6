@@ -37,7 +37,7 @@
   "jsdelivr": "dist/backbone.min.js",
   "dependencies": {},
   "devDependencies": {
-    "babel-eslint": "^8.0.1",
+    "babel-eslint": "^10.1.0",
     "eslint": "^4.10.0",
     "karma": "^1.1",
     "karma-phantomjs-launcher": "^1",
